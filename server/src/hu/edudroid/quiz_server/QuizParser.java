@@ -1,8 +1,9 @@
 package hu.edudroid.quiz_server;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class QuizParser {
@@ -12,19 +13,26 @@ public class QuizParser {
 	private ArrayList<ArrayList<String>> codes = new ArrayList<ArrayList<String>>();
 	
 	public QuizParser(String fileName) throws IOException {
-		BufferedReader reader = new BufferedReader(new FileReader(fileName));
+		System.out.println("Parsing");
+		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"));
 		
 		ArrayList<String> questionAnswers = null;
 		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
 			if (line.startsWith("Q")) {
 				String[] parts = line.split(" ");
+				System.out.println("Id " + parts[1]);
 				questionIds.add(parts[1]);
-				questions.add(line.substring(1 + 1 + parts[1].length() + 1));
+				String questionText = line.substring(1 + 1 + parts[1].length() + 1);
+				System.out.println("Question " + questionText);
+				questions.add(questionText);
 				questionAnswers = new ArrayList<String>();
 				answers.add(questionAnswers);
 			} else if (line.startsWith("A")) {
 				if (questionAnswers != null) {
 					questionAnswers.add(line.substring(1 + 1));
+					System.out.println("   Answer " + line.substring(1 + 1));
+				} else {
+					System.out.println("UNPARSED (answer at wrong position) " + line);
 				}
 			} else if (line.startsWith("C")) {
 				String[] parts = line.split(" ");
@@ -34,6 +42,9 @@ public class QuizParser {
 				items.add(code);
 				items.add(teamName);
 				codes.add(items);
+				System.out.println("User " + code + " -> " + teamName);
+			} else {
+				System.out.println("UNPARSED " + line);
 			}
 		}
 		reader.close();

@@ -144,13 +144,8 @@ public class QuizService extends Service implements QuizPeerListener {
 		}
 	}
 
-	@Override
-	public void messageSendingError() {
-	}
-
-	@Override
-	public void messageSendingSuccess() {
-	}
+	@Override public void messageSendingError(String sentMessage, Address destination, String messageType) {}
+	@Override public void messageSendingSuccess(String sentMessage, Address destination, String messageType) {}
 
 	@Override
 	public void answerReceived(Address source, AnswerMessage answer) {

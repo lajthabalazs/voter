@@ -110,7 +110,7 @@ public class QuizServerAdmin extends JFrame implements ActionListener, QuizPeerL
 					}
 					QuizServer server = new QuizServer(parser.getQuestionIds(), parser.getQuestions(), parser.getAnswers(), parser.getCodes());
 					server.registerListener(this);
-					new QuizLivePanel(server);
+					new QuizLiveFrame(server);
 					log("Peer created ");
 				} catch(Exception e) {
 					log("Error creating peer with config " + fileNameField.getText() + " : " + e);
@@ -126,11 +126,8 @@ public class QuizServerAdmin extends JFrame implements ActionListener, QuizPeerL
 		logArea.setText(message + "\n" + text);
 	}
 
-	@Override
-	public void messageSendingError() {}
-
-	@Override
-	public void messageSendingSuccess() {}
+	@Override public void messageSendingError(String sentMessage, Address destination, String messageType) {}
+	@Override public void messageSendingSuccess(String sentMessage, Address destination, String messageType) {}
 
 	@Override
 	public void answerReceived(Address sender, AnswerMessage answer) {

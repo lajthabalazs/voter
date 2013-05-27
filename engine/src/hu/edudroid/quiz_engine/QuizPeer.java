@@ -35,14 +35,22 @@ public class QuizPeer extends Peer{
 		try {
 			String msgType = jsonMsg.getString("type");
 			if (msgType.equals(QuestionMessage.QUESTION_MESSAGE_TYPE)) {
-				// TODO process question
+				QuestionMessage question = new QuestionMessage(jsonMsg);
+				for (QuizPeerListener listener : listeners) {
+					listener.questionReceived(sender, question);
+				}
 			} else if (msgType.equals(AnswerMessage.ANSWER_MESSAGE_TYPE)) {
-				// TODO process answer
+				AnswerMessage answer = new AnswerMessage(jsonMsg);
+				for (QuizPeerListener listener : listeners) {
+					listener.answerReceived(sender, answer);
+				}
 			} else if (msgType.equals(PingMessage.PING_MESSAGE_TYPE)) {
-				// TODO process ping
+				PingMessage ping = new PingMessage(jsonMsg);
+				for (QuizPeerListener listener : listeners) {
+					listener.pingReceived(sender, ping);
+				}
 			}
 		} catch (JSONException e) {
-			// TODO Message error
 			e.printStackTrace();
 		}
 		super.onReceivedJSONMsg(jsonMsg, sender);
@@ -50,12 +58,16 @@ public class QuizPeer extends Peer{
 
 	@Override
 	protected void onDeliveryMsgFailure(String sentMessage, Address destination, String messageType) {
-		// TODO Message sending error
+		for (QuizPeerListener listener : listeners) {
+			listener.messageSendingError(sentMessage, destination, messageType);
+		}
 	}
 
 	@Override
 	protected void onDeliveryMsgSuccess(String sentMessage, Address destination, String messageType) {
-		// TODO Message sending success
+		for (QuizPeerListener listener : listeners) {
+			listener.messageSendingSuccess(sentMessage, destination, messageType);
+		}
 	}
 
 

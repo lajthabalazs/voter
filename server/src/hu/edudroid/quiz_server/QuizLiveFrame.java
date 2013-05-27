@@ -6,16 +6,21 @@ import hu.edudroid.quiz_engine.QuestionMessage;
 import hu.edudroid.quiz_engine.QuizPeerListener;
 import it.unipr.ce.dsg.s2p.sip.Address;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.SpringLayout;
 
-public class QuizLivePanel extends JFrame implements QuizPeerListener {
+public class QuizLiveFrame extends JFrame implements QuizPeerListener, ActionListener {
 	private static final long serialVersionUID = -5423453185160139085L;
 	// Shows actual question, active peers, and peers who sent in a response
 	JLabel question;
@@ -27,19 +32,23 @@ public class QuizLivePanel extends JFrame implements QuizPeerListener {
 	private boolean[] answered;
 	private QuizServer server;
 	private String[][] users;
+	int actualQuestion = 0;
 	
-	public QuizLivePanel(QuizServer server) {
+	public QuizLiveFrame(QuizServer server) {
 		this.server = server;
 		server.registerListener(this);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		SpringLayout springLayout = new SpringLayout();
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		Container contentPane = getContentPane();
-		contentPane.setLayout(springLayout);
 		
 		question = new JLabel();
+		question.setMaximumSize(new Dimension(600, 600));
 		nextQuestion = new JButton("Next");
+		nextQuestion.addActionListener(this);
 		answerList = new JList();
+		answerList.setCellRenderer(new MultilineLabelRenderer());
 		clients = new JList();
+		clients.setBackground(Color.LIGHT_GRAY);
+		question.setFont(new Font(Font.SERIF, Font.BOLD, 20));
 		
 		clientListModel = new DefaultListModel();
 		clients.setModel(clientListModel);
@@ -47,42 +56,38 @@ public class QuizLivePanel extends JFrame implements QuizPeerListener {
 		answerListModel = new DefaultListModel();
 		answerList.setModel(answerListModel);
 
-		contentPane.add(question);
-		contentPane.add(nextQuestion);
-		contentPane.add(answerList);
-		
-		springLayout.putConstraint(SpringLayout.WEST, question, 5, SpringLayout.WEST, contentPane);
-		springLayout.putConstraint(SpringLayout.WEST, nextQuestion, 5, SpringLayout.EAST, question);
-		springLayout.putConstraint(SpringLayout.EAST, contentPane, 5, SpringLayout.EAST, nextQuestion);
-		springLayout.putConstraint(SpringLayout.WEST, answerList, 5, SpringLayout.WEST, contentPane);
-		springLayout.putConstraint(SpringLayout.EAST, answerList, 5, SpringLayout.EAST, contentPane);
-		springLayout.putConstraint(SpringLayout.WEST, clients, 5, SpringLayout.WEST, contentPane);
-		springLayout.putConstraint(SpringLayout.EAST, clients, 5, SpringLayout.EAST, contentPane);
-		
-		springLayout.putConstraint(SpringLayout.NORTH, question, 5, SpringLayout.NORTH, contentPane);
-		springLayout.putConstraint(SpringLayout.NORTH, nextQuestion, 5, SpringLayout.NORTH, contentPane);
-		springLayout.putConstraint(SpringLayout.NORTH, answerList, 5, SpringLayout.SOUTH, question);
-		springLayout.putConstraint(SpringLayout.NORTH, clients, 5, SpringLayout.SOUTH, answerList);
-		springLayout.putConstraint(SpringLayout.SOUTH, contentPane, 5, SpringLayout.SOUTH, clients);
+		contentPane.add(question, BorderLayout.PAGE_START);
+		contentPane.add(answerList, BorderLayout.CENTER);
+		contentPane.add(clients, BorderLayout.LINE_END);
+		contentPane.add(nextQuestion, BorderLayout.PAGE_END);
 		
 		pack();
 		setVisible(true);
+		askQuestion();
 	}
 	
-	private void askQuestion(int index) {
+	private void askQuestion() {
 		users = server.getUsers();
 		answered = new boolean[users.length];
 		for (int i = 0; i < users.length; i++) {
 			answered[i] = false;
 		}
-		updateClientList();
-		question.setText(server.getQuestion(index));
-		String[] answers = server.getAnswers(index);
-		answerListModel.clear();
-		for (int i = 0; i < answers.length; i++) {
-			answerListModel.addElement(answers[i]);
+		updateUI();
+		server.askQuestion(actualQuestion);
+	}
+	
+	private void updateUI() {
+		if (server.getQuestionCount() > actualQuestion) {
+			nextQuestion.setEnabled(server.getQuestionCount() > actualQuestion + 1);
+			question.setText("<HTML>" + server.getQuestion(actualQuestion) + "</HTML>");
+			String[] answers = server.getAnswers(actualQuestion);
+			answerListModel.clear();
+			for (int i = 0; i < answers.length; i++) {
+				answerListModel.addElement("<HTML>" + answers[i] + "</HTML>");
+			}
+			updateClientList();
 		}
-		server.askQuestion(index);
+		pack();
 	}
 	
 	private void updateClientList() {
@@ -98,11 +103,8 @@ public class QuizLivePanel extends JFrame implements QuizPeerListener {
 		}
 	}
 
-	@Override
-	public void messageSendingError() {}
-
-	@Override
-	public void messageSendingSuccess() {}
+	@Override public void messageSendingError(String sentMessage, Address destination, String messageType) {}
+	@Override public void messageSendingSuccess(String sentMessage, Address destination, String messageType) {}
 
 	@Override
 	public void answerReceived(Address sender, AnswerMessage answer) {
@@ -125,6 +127,12 @@ public class QuizLivePanel extends JFrame implements QuizPeerListener {
 
 	@Override
 	public void pingReceived(Address sender, PingMessage ping) {}
+
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		actualQuestion ++;
+		askQuestion();
+	}
 }
 
 

@@ -18,14 +18,14 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class QuizQuestionActivity extends Activity implements ServiceConnection, OnItemClickListener, QuizPeerListener {
 
-	private EditText questionText;
-	private EditText codeText;
+	private TextView questionText;
+	private TextView codeText;
 	private ListView answerList;
 	private QuizService service;
 	private SharedPreferences prefs;
@@ -35,8 +35,9 @@ public class QuizQuestionActivity extends Activity implements ServiceConnection,
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		questionText = (EditText)findViewById(R.id.questionText);
-		codeText = (EditText)findViewById(R.id.codeDisplay);
+		setContentView(R.layout.quiz_question);
+		questionText = (TextView)findViewById(R.id.questionText);
+		codeText = (TextView)findViewById(R.id.codeDisplay);
 		answerList = (ListView)findViewById(R.id.answerList);
 		answerList.setOnItemClickListener(this);
 		prefs = getSharedPreferences(EnterCodeActivity.SHARED_PREFS_NAME, MODE_PRIVATE);
@@ -100,11 +101,8 @@ public class QuizQuestionActivity extends Activity implements ServiceConnection,
 		}
 	}
 
-	@Override
-	public void messageSendingError() {}
-
-	@Override
-	public void messageSendingSuccess() {}
+	@Override public void messageSendingError(String sentMessage, Address destination, String messageType) {}
+	@Override public void messageSendingSuccess(String sentMessage, Address destination, String messageType) {}
 
 	@Override
 	public void answerReceived(Address source, AnswerMessage answer) {}

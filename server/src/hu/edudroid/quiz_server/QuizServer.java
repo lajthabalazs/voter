@@ -46,15 +46,8 @@ public class QuizServer implements QuizPeerListener {
 		}
 	}
 
-	@Override
-	public void messageSendingError() {
-		System.out.println("Message sending error.");
-	}
-
-	@Override
-	public void messageSendingSuccess() {
-		System.out.println("Message sending success.");
-	}
+	@Override public void messageSendingError(String sentMessage, Address destination, String messageType) {}
+	@Override public void messageSendingSuccess(String sentMessage, Address destination, String messageType) {}
 
 	@Override
 	public void answerReceived(Address sender, AnswerMessage answer) {
@@ -104,6 +97,10 @@ public class QuizServer implements QuizPeerListener {
 
 	public void registerListener(QuizPeerListener listener) {
 		listeners.add(listener);
+	}
+
+	public int getQuestionCount() {
+		return questionIds.length;
 	}
 }
 
