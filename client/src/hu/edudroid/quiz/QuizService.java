@@ -1,5 +1,10 @@
 package hu.edudroid.quiz;
 
+import hu.edudroid.quiz_engine.AnswerMessage;
+import hu.edudroid.quiz_engine.PingMessage;
+import hu.edudroid.quiz_engine.QuestionMessage;
+import hu.edudroid.quiz_engine.QuizPeer;
+import hu.edudroid.quiz_engine.QuizPeerListener;
 import it.unipr.ce.dsg.s2p.sip.Address;
 
 import java.util.HashSet;
@@ -22,6 +27,7 @@ public class QuizService extends Service implements QuizPeerListener {
 	private NotificationManager notificationManager;
 	private Notification notification;
 	private String question;
+	private String questionId;
 	private String[] answers;
 	
 		
@@ -82,11 +88,6 @@ public class QuizService extends Service implements QuizPeerListener {
 		}).start();
 	}
 
-	/**
-	 * Sends a chat message through the ring.
-	 * @param contact
-	 * @param message
-	 */
 	public void sendAnswer(final String address, final String code, final String questionId, final String answer) {
 		new Thread(new Runnable() {
 			
@@ -95,9 +96,19 @@ public class QuizService extends Service implements QuizPeerListener {
 				peer.sendAnswer(new Address(address), code, questionId, answer);
 			}
 		}).start();
+	}
+
+	public void sendPing(final String address, final String code) {
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				peer.sendPing(new Address(address), code);
+			}
+		}).start();
 
 	}
-		
+
 	@Override
 	public void onDestroy() {
 		if (peer != null) {
@@ -142,13 +153,18 @@ public class QuizService extends Service implements QuizPeerListener {
 	}
 
 	@Override
-	public void answerReceived(AnswerMessage answer) {
+	public void answerReceived(Address source, AnswerMessage answer) {
 	}
 
 	@Override
-	public void questionReceived(QuestionMessage question) {
+	public void pingReceived(Address source, PingMessage ping) {
+	}
+
+	@Override
+	public void questionReceived(Address source, QuestionMessage question) {
 		this.question = question.getQuestion();
 		this.answers = question.getAnswers();
+		this.questionId = question.getQuestionId();
 	}
 
 	public String getQuestion() {
@@ -158,4 +174,9 @@ public class QuizService extends Service implements QuizPeerListener {
 	public String[] getAnswers() {
 		return answers;
 	}
+
+	public String getQuestionId() {
+		return questionId;
+	}
+
 }
