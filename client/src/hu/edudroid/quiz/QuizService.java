@@ -20,6 +20,8 @@ import android.util.Log;
 
 public class QuizService extends Service implements QuizPeerListener {
 	private static final int SERVICE_ID = 0;
+
+	private static final int QUIZ_PEER_PORT = 56221;
 	
 	private QuizServiceBinder binder = new QuizServiceBinder();
 	private QuizPeer peer;
@@ -48,6 +50,7 @@ public class QuizService extends Service implements QuizPeerListener {
         		"S2P chat is active", contentIntent);
 		notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		notificationManager.notify(SERVICE_ID, notification);
+		startPeer("QuizPeer", QUIZ_PEER_PORT);
 	}
 
 	@Override
@@ -56,11 +59,12 @@ public class QuizService extends Service implements QuizPeerListener {
 		return START_STICKY;
 	}
 
-	public int startPeer(final String peerName, final int peerPort) {
+	private int startPeer(final String peerName, final int peerPort) {
 		// Get parameters from Intent
 		if ((peerName == null) || (peerPort == 0)) {
 			return -1;
 		}
+		Log.e("ChatService", "Starting peer");
 		new Thread(new Runnable() {
 			
 			@Override
@@ -68,42 +72,43 @@ public class QuizService extends Service implements QuizPeerListener {
 				if (peer != null) {
 					peer.halt();
 				}
-				peer = new QuizPeer(peerName, peerName, peerPort);
+				peer = new QuizPeer(peerName, peerName, peerPort, new Base64CoderAndroid());
 				peer.registerListener(QuizService.this);
+				Log.e("ChatService", "Peer started");
 			}
 		}).start();
 		
 		return 0;
 	}
 	
-	public void stopPeer() {
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				if (peer != null) {
-					peer.halt();
-				}
-			}
-		}).start();
-	}
-
 	public void sendAnswer(final String address, final String code, final String questionId, final String answer) {
 		new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
-				peer.sendAnswer(new Address(address), code, questionId, answer);
+				peer.sendAnswer(new Address(address, QuizPeer.SERVER_PORT), code, questionId, answer);
 			}
 		}).start();
 	}
 
 	public void sendPing(final String address, final String code) {
 		new Thread(new Runnable() {
-			
 			@Override
 			public void run() {
-				peer.sendPing(new Address(address), code);
+				for (int i = 0; i < 5; i++) {
+					if (peer != null) {
+						peer.sendPing(new Address(address, QuizPeer.SERVER_PORT), code);
+						Log.e("Ping message sent", "Code " + code);
+						break;
+					} else {
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
 			}
 		}).start();
 
@@ -144,8 +149,12 @@ public class QuizService extends Service implements QuizPeerListener {
 		}
 	}
 
-	@Override public void messageSendingError(String sentMessage, Address destination, String messageType) {}
-	@Override public void messageSendingSuccess(String sentMessage, Address destination, String messageType) {}
+	@Override public void messageSendingError(String sentMessage, Address destination, String messageType) {
+		Log.e("Message sending error", sentMessage + " " + messageType);
+	}
+	@Override public void messageSendingSuccess(String sentMessage, Address destination, String messageType) {
+		Log.i("Message sending success", sentMessage);		
+	}
 
 	@Override
 	public void answerReceived(Address source, AnswerMessage answer) {
@@ -157,9 +166,13 @@ public class QuizService extends Service implements QuizPeerListener {
 
 	@Override
 	public void questionReceived(Address source, QuestionMessage question) {
+		this.questionId = question.getQuestionId();
 		this.question = question.getQuestion();
 		this.answers = question.getAnswers();
-		this.questionId = question.getQuestionId();
+		Log.e("Question received", question.getQuestion());
+		for (QuizPeerListener listener : listeners) {
+			listener.questionReceived(source, question);
+		}
 	}
 
 	public String getQuestion() {

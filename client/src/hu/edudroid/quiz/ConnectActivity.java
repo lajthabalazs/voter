@@ -46,7 +46,6 @@ public class ConnectActivity extends Activity implements OnClickListener {
 			prefs.edit().putString(EnterCodeActivity.SERVER_ADDRESS_KEY, address).commit();
 			startActivity(new Intent(this, QuizQuestionActivity.class));
 		} else if (arg0.getId() == R.id.discoverButton) {
-			// TODO do nothing
 		}
 	}
 }

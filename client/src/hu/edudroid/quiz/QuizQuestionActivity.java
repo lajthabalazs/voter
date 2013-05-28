@@ -9,11 +9,13 @@ import hu.edudroid.quiz_engine.QuizPeerListener;
 import android.app.Activity;
 import android.app.AlertDialog.Builder;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -29,6 +31,9 @@ public class QuizQuestionActivity extends Activity implements ServiceConnection,
 	private ListView answerList;
 	private QuizService service;
 	private SharedPreferences prefs;
+	
+	private String code;
+	private String serverAddress;
 	
 	private String questionId;
 
@@ -46,18 +51,19 @@ public class QuizQuestionActivity extends Activity implements ServiceConnection,
 	@Override
 	protected void onResume() {
 		super.onResume();
+		code = prefs.getString(EnterCodeActivity.CODE_KEY, null);
+		serverAddress = prefs.getString(EnterCodeActivity.SERVER_ADDRESS_KEY, null);
 		answerList.setVisibility(View.INVISIBLE);
 		questionText.setText(R.string.noQuestion);		
-		boolean result = bindService(new Intent(this, QuizService.class), this, 0);
+		boolean result = bindService(new Intent(this, QuizService.class), this, Context.BIND_AUTO_CREATE);
 		if (!result) {
 			Builder builder = new Builder(this);
 			builder.setTitle("Internal error");
 			builder.setMessage("Unable to connect to service. Please restart manually!");
 			builder.show();
 		}
-		String codeString = prefs.getString(EnterCodeActivity.CODE_KEY, null);
-		if (codeString != null) {
-			codeText.setText(codeString);
+		if (code != null) {
+			codeText.setText(code + " " + serverAddress);
 		}
 		
 	}
@@ -73,8 +79,10 @@ public class QuizQuestionActivity extends Activity implements ServiceConnection,
 
 	@Override
 	public void onServiceConnected(ComponentName name, IBinder binder) {
+		Log.d("Service connected", "We have a service!");		
 		service = ((QuizServiceBinder)binder).getService();
 		service.registerListener(this);
+		service.sendPing(serverAddress, code);
 		String question = service.getQuestion();
 		String[] answers = service.getAnswers();
 		questionId = service.getQuestionId();

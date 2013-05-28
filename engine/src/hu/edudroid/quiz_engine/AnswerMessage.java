@@ -13,16 +13,20 @@ public class AnswerMessage extends BasicMessage {
 	private String answerId;
 	private String code;
 	private String questionId;
+	private Base64Coder coder;
 
-	public AnswerMessage(String code, String questionId, String answerId) {
+
+	public AnswerMessage(String code, String questionId, String answerId, Base64Coder coder) {
 		super();
+		this.coder = coder;
 		super.setType(ANSWER_MESSAGE_TYPE);
 		this.code = code;
 		this.answerId = answerId;
 		this.questionId = questionId;
 	}
 	
-	public AnswerMessage(JSONObject jsonMsg) {
+	public AnswerMessage(JSONObject jsonMsg, Base64Coder coder) {
+		this.coder = coder;
 		try {
 			code = jsonMsg.getString(CODE_KEY);
 			answerId = jsonMsg.getString(ANSWER_ID_KEY);
@@ -33,14 +37,14 @@ public class AnswerMessage extends BasicMessage {
 	}
 
 	public String getCode() {
-		return code;
+		return coder.decode(code);
 	}
 	
 	public String getAnswerId() {
-		return answerId;
+		return coder.decode(answerId);
 	}
 	
 	public String getQuestionId() {
-		return questionId;
+		return coder.decode(questionId);
 	}
 }

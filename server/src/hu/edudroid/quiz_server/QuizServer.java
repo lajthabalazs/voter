@@ -13,7 +13,6 @@ import hu.edudroid.quiz_engine.QuizPeerListener;
 
 public class QuizServer implements QuizPeerListener {
 	
-	private static final int SERVER_PORT = 32458;
 	private QuizPeer peer;
 	private int actualQuestion = -1;
 	private String[] questionIds;
@@ -29,7 +28,7 @@ public class QuizServer implements QuizPeerListener {
 		this.questions = questions;
 		this.answers = answers;
 		this.userCodes = userCodes;
-		peer = new QuizPeer("server", "server", SERVER_PORT);
+		peer = new QuizPeer("server", "server", QuizPeer.SERVER_PORT, new Base64CoderSE());
 		peer.registerListener(this);
 	}
 	
@@ -68,18 +67,22 @@ public class QuizServer implements QuizPeerListener {
 		// Checks if code is part of the game
 		boolean found = false;
 		for (int i = 0; i < userCodes.length; i++) {
-			if (code == userCodes[i][0]) {
+			if (code.equals(userCodes[i][0])) {
 				found = true;
 				break;
 			}
 		}
 		if (!found) {
+			System.out.println("Invalid code");
 			return;
 		}
+		System.out.println("Valid code, " + code + " @ " + source.toString());
 		clients.put(code, source);
 		if (actualQuestion != -1) {
-			QuestionMessage message = new QuestionMessage(questionIds[actualQuestion], questions[actualQuestion], answers[actualQuestion]);
-			peer.send(source, message);
+			System.out.println("Send question");
+			peer.sendQuestion(source, questionIds[actualQuestion], questions[actualQuestion], answers[actualQuestion]);
+		} else {
+			System.out.println("No question yet.");
 		}
 	}
 
@@ -103,26 +106,3 @@ public class QuizServer implements QuizPeerListener {
 		return questionIds.length;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

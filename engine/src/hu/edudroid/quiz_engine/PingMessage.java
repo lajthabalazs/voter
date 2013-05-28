@@ -9,15 +9,15 @@ public class PingMessage extends BasicMessage {
 	private static final String CODE_KEY = "code";
 	private String code;
 	
-	public PingMessage(String code) {
+	public PingMessage(String code, Base64Coder coder) {
 		super();
-		this.code = code;
+		this.code = coder.encode(code);
 		super.setType(PING_MESSAGE_TYPE);
 	}
 
-	public PingMessage(JSONObject jsonMsg) {
+	public PingMessage(JSONObject jsonMsg, Base64Coder coder) {
 		try {
-			code = jsonMsg.getString(CODE_KEY);
+			code = coder.decode(jsonMsg.getString(CODE_KEY));
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
