@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -24,18 +25,17 @@ public class QuizLiveFrame extends JFrame implements QuizPeerListener, ActionLis
 	private static final long serialVersionUID = -5423453185160139085L;
 	// Shows actual question, active peers, and peers who sent in a response
 	JLabel question;
-	JList answerList;
-	JList clients;
+	JList<String> answerList;
+	JList<String> clients;
 	JButton nextQuestion;
-	private DefaultListModel clientListModel;
-	private DefaultListModel answerListModel;
-	private boolean[] answered;
+	private DefaultListModel<String> clientListModel;
+	private DefaultListModel<String> answerListModel;
 	private QuizServer server;
-	private String[][] users;
-	int actualQuestion = 0;
+	private QuizGame model;
 	
-	public QuizLiveFrame(QuizServer server) {
+	public QuizLiveFrame(QuizServer server, QuizGame model) {
 		this.server = server;
+		this.model = model;
 		server.registerListener(this);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		Container contentPane = getContentPane();
@@ -44,16 +44,16 @@ public class QuizLiveFrame extends JFrame implements QuizPeerListener, ActionLis
 		question.setMaximumSize(new Dimension(600, 600));
 		nextQuestion = new JButton("Next");
 		nextQuestion.addActionListener(this);
-		answerList = new JList();
+		answerList = new JList<String>();
 		answerList.setCellRenderer(new MultilineLabelRenderer());
-		clients = new JList();
+		clients = new JList<String>();
 		clients.setBackground(Color.LIGHT_GRAY);
 		question.setFont(new Font(Font.SERIF, Font.BOLD, 20));
 		
-		clientListModel = new DefaultListModel();
+		clientListModel = new DefaultListModel<String>();
 		clients.setModel(clientListModel);
 
-		answerListModel = new DefaultListModel();
+		answerListModel = new DefaultListModel<String>();
 		answerList.setModel(answerListModel);
 
 		contentPane.add(question, BorderLayout.PAGE_START);
@@ -63,43 +63,39 @@ public class QuizLiveFrame extends JFrame implements QuizPeerListener, ActionLis
 		
 		pack();
 		setVisible(true);
-		askQuestion();
-	}
-	
-	private void askQuestion() {
-		users = server.getUsers();
-		answered = new boolean[users.length];
-		for (int i = 0; i < users.length; i++) {
-			answered[i] = false;
-		}
-		updateUI();
-		server.askQuestion(actualQuestion);
 	}
 	
 	private void updateUI() {
-		if (server.getQuestionCount() > actualQuestion) {
-			nextQuestion.setEnabled(server.getQuestionCount() > actualQuestion + 1);
-			question.setText("<HTML>" + server.getQuestion(actualQuestion) + "</HTML>");
-			String[] answers = server.getAnswers(actualQuestion);
+		nextQuestion.setEnabled(model.hasNextQuestion());
+		QuizQuestion quizQestion = model.getActualQuestion();
+		if (question != null) {
+			question.setText("<HTML>" + quizQestion.getQuestionText() + "</HTML>");
+			String[] answers = quizQestion.getAnswerStrings();
 			answerListModel.clear();
 			for (int i = 0; i < answers.length; i++) {
 				answerListModel.addElement("<HTML>" + answers[i] + "</HTML>");
 			}
-			updateClientList();
 		}
+		updateClientList();
 		pack();
 	}
 	
 	private void updateClientList() {
 		clientListModel.clear();
-		for (int i = 0; i < users.length; i++) {
-			String item = users[i][1];
-			if (answered[i]) {
-				item = item + " ANSWERED";
-			} else {
-				item = item + " WAITING";
+		QuizQuestion quizQuestion = model.getActualQuestion();
+		if (quizQuestion != null) {
+			String questionId = quizQuestion.getQuestionId();
+			List<QuizPlayer> players = model.getPlayers();
+			for (QuizPlayer player : players) {
+				String item = player.getName();
+				if (player.getAnswer(questionId) != null) {
+					item = item + " ANSWERED";
+				} else {
+					item = item + " WAITING";
+				}
+				clientListModel.addElement(item);
 			}
-			clientListModel.addElement(item);
+		} else {
 		}
 	}
 
@@ -108,18 +104,8 @@ public class QuizLiveFrame extends JFrame implements QuizPeerListener, ActionLis
 
 	@Override
 	public void answerReceived(Address sender, AnswerMessage answer) {
-		int index = -1;
-		String code = answer.getCode();
-		for (int i = 0; i < users.length; i++) {
-			if (users[i][0].equals(code)) {
-				index = i;
-				break;
-			}
-		}
-		if (index != -1) {
-			answered[index] = true;
-			updateClientList();
-		}
+		// TODO subscribe to model changes instead!
+		updateClientList();
 	}
 
 	@Override
@@ -130,8 +116,20 @@ public class QuizLiveFrame extends JFrame implements QuizPeerListener, ActionLis
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		actualQuestion ++;
-		askQuestion();
+		// TODO ask question, next block, etc
+		int actualRound = model.getActualRoundIndex();
+		if (model.playRound(actualRound + 1)) {
+			updateUI();
+		} else {
+			System.err.println("No next round.");
+		}
+		int actualQuestion = model.getActualQuestionIndex();
+		if (model.playQuestion(actualQuestion + 1)) {
+			updateUI();
+		} else {
+			System.err.println("No next question.");
+		}
+
 	}
 }
 

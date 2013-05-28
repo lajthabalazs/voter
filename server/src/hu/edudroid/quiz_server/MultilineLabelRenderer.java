@@ -17,9 +17,7 @@ public class MultilineLabelRenderer extends DefaultListCellRenderer {
 	public Component getListCellRendererComponent(final JList list, final Object value, final int index, final boolean isSelected, final boolean hasFocus) {
 		final String text = (String) value;
 		label.setFont(new Font(Font.SERIF, Font.PLAIN, 20));	
-		//label.setText("<html><body style='width: 200px;'>" + text + "</body></html>");
-		label.setText("<html><body>" + text + "</body></html>");
-		//label.setText("<html><body>" + text + "</body></html>");
+		label.setText(text);
 		return label;
 	}
 }

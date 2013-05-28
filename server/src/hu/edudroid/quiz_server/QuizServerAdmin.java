@@ -35,9 +35,6 @@ public class QuizServerAdmin extends JFrame implements ActionListener, QuizPeerL
 	private JTextField fileNameField;
 	private JTextArea logArea;
 	private JFileChooser fileChooser = new JFileChooser();
-	private String[][] usersAnswers;
-	private String[][] userCodes;
-	private String[] questionIds;
 	private boolean running = false;
 	private JButton peerButton;
 	
@@ -99,18 +96,10 @@ public class QuizServerAdmin extends JFrame implements ActionListener, QuizPeerL
 				try{
 					running = true;
 					
-					QuizGame parser = new QuizGame(fileNameField.getText());
-					usersAnswers = new String[parser.getCodes().length][parser.getQuestionIds().length];
-					userCodes = parser.getCodes();
-					questionIds = parser.getQuestionIds();
-					for (int i = 0; i < usersAnswers.length; i++) {
-						for (int j = 0; j < usersAnswers[i].length; j++) {
-							usersAnswers[i][j] = null;
-						}
-					}
-					QuizServer server = new QuizServer(parser.getQuestionIds(), parser.getQuestions(), parser.getAnswers(), parser.getCodes());
+					QuizGame model = new QuizGame(fileNameField.getText());
+					QuizServer server = new QuizServer(model);
 					server.registerListener(this);
-					new QuizLiveFrame(server);
+					new QuizLiveFrame(server, model);
 					log("Peer created ");
 				} catch(Exception e) {
 					log("Error creating peer with config " + fileNameField.getText() + " : " + e);
@@ -130,27 +119,7 @@ public class QuizServerAdmin extends JFrame implements ActionListener, QuizPeerL
 	@Override public void messageSendingSuccess(String sentMessage, Address destination, String messageType) {}
 
 	@Override
-	public void answerReceived(Address sender, AnswerMessage answer) {
-		if (running) {
-			int userIndex = -1;
-			for (int i = 0; i < userCodes.length; i++) {
-				if (userCodes[i][0].equals(answer.getCode())) {
-					userIndex = i;
-					break;
-				}
-			}
-			int questionIndex = -1;
-			for (int i = 0; i < questionIds.length; i++) {
-				if (questionIds[i].equals(answer.getQuestionId())) {
-					questionIndex = i;
-					break;
-				}
-			}
-			if (userIndex != -1 && questionIndex != -1) {
-				usersAnswers[userIndex][questionIndex] = answer.getAnswerId();
-			}
-		}
-	}
+	public void answerReceived(Address sender, AnswerMessage answer) {}
 
 	@Override
 	public void questionReceived(Address sender, QuestionMessage question) {}

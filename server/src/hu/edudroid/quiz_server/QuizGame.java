@@ -1,47 +1,60 @@
 package hu.edudroid.quiz_server;
 
+import hu.edudroid.quiz_server.QuizQuestion.Type;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.TreeSet;
 
 public class QuizGame {
-	private ArrayList<String> questionIds = new ArrayList<String>();
-	private ArrayList<String> questions = new ArrayList<String>();
-	private ArrayList<ArrayList<String>> answers = new ArrayList<ArrayList<String>>();
-	private ArrayList<ArrayList<String>> codes = new ArrayList<ArrayList<String>>();
+	private ArrayList<QuizRound> rounds = new ArrayList<QuizRound>();
+	private int actualRound = -1;
+	private int actualQuestion = -1;
+	private HashMap<String, QuizPlayer> players = new HashMap<String,QuizPlayer>();
 	
 	public QuizGame(String fileName) throws IOException {
 		System.out.println("Parsing");
 		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"));
-		
-		ArrayList<String> questionAnswers = null;
+		QuizRound actualRound = null;
+		QuizQuestion actualQuestion = null;
 		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-			if (line.startsWith("Q")) {
-				String[] parts = line.split(" ");
-				System.out.println("Id " + parts[1]);
-				questionIds.add(parts[1]);
-				String questionText = line.substring(1 + 1 + parts[1].length() + 1);
-				System.out.println("Question " + questionText);
-				questions.add(questionText);
-				questionAnswers = new ArrayList<String>();
-				answers.add(questionAnswers);
-			} else if (line.startsWith("A")) {
-				if (questionAnswers != null) {
-					questionAnswers.add(line.substring(1 + 1));
-					System.out.println("   Answer " + line.substring(1 + 1));
+			if (line.startsWith("R")) {
+				actualRound = new QuizRound();
+				actualQuestion = null;
+			} else if (line.startsWith("Q")) {
+				if (actualRound != null) {
+					String[] parts = line.split(" ");
+					String questionId = parts[1];
+					Type type = Type.parse(parts[2]);
+					String text = line.substring(1 + 1 + parts[1].length() + 1 + parts[2].length() + 1);
+					actualQuestion = new QuizQuestion(questionId, text, type);
+					actualRound.addQuestion(actualQuestion);
 				} else {
-					System.out.println("UNPARSED (answer at wrong position) " + line);
+					System.err.println("Question found outside of round : " + line);
+				}
+			} else if (line.startsWith("A")) {
+				if (actualQuestion != null) {
+					QuizAnswer answer = new QuizAnswer();
+					String[] parts = line.split(" ");
+					answer.setPointValue(Integer.parseInt(parts[1]));
+					answer.setText(line.substring(1 + 1 + parts[1].length() + 1));
+					actualQuestion.addAnswer(answer);
+				} else {
+					System.err.println("Answer found outside of question : " + line);
 				}
 			} else if (line.startsWith("C")) {
+				actualRound = null;
+				actualQuestion = null;
 				String[] parts = line.split(" ");
 				String code = parts[1];
 				String teamName = line.substring(1 + 1 + parts[1].length() + 1);
-				ArrayList<String> items = new ArrayList<String>();
-				items.add(code);
-				items.add(teamName);
-				codes.add(items);
+				QuizPlayer player = new QuizPlayer(code, teamName, 5, 5);
+				players.put(code, player);
 				System.out.println("User " + code + " -> " + teamName);
 			} else {
 				System.out.println("UNPARSED " + line);
@@ -50,31 +63,91 @@ public class QuizGame {
 		reader.close();
 	}
 	
-	public String[] getQuestionIds() {
-		return questionIds.toArray(new String[questionIds.size()]);
-	}
-
-	public String[] getQuestions() {
-		return questions.toArray(new String[questionIds.size()]);
-	}
-
-	public String[][] getAnswers() {
-		String[][] answers = new String[this.answers.size()][];
-		for (int i = 0; i < answers.length; i++) {
-			answers[i] = this.answers.get(i).toArray(new String[this.answers.get(i).size()]);
+	public boolean playRound(int round) {
+		if (round < 0) {
+			return false;
+		} else if (rounds.size() > round) {
+			actualRound = round;
+			return true;
+		} else {
+			return false;
 		}
-		return answers;
 	}
-
+	
+	public boolean playQuestion(int question) {
+		if (actualRound == -1) {
+			return false;
+		} else if (question < 0) {
+			return false;
+		} else if (rounds.get(actualRound).getQuestionCount() > question) {
+			actualQuestion = question;
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	/**
-	 * Each item contains the client code and the client's display name
+	 * Gets the specific user's score for the given round.
+	 * @param round The index of the round
+	 * @param playerCode The code of the player
 	 * @return
 	 */
-	public String[][] getCodes() {
-		String[][] codes = new String[this.codes.size()][];
-		for (int i = 0; i < codes.length; i++) {
-			codes[i] = this.codes.get(i).toArray(new String[this.codes.get(i).size()]);
+	public int getScore(int roundIndex, String playerCode) {
+		QuizRound round = rounds.get(roundIndex);
+		ArrayList<String> roundsQuestions = round.getQuestionIds();
+		ArrayList<UserAnswer> playerAnswers = new ArrayList<UserAnswer>();
+		QuizPlayer actualPlayer = players.get(playerCode);
+		ArrayList<ArrayList<UserAnswer>> allAnswers = new ArrayList<ArrayList<UserAnswer>>();
+		for (String questionId : roundsQuestions) {
+			playerAnswers.add(actualPlayer.getAnswer(questionId));
+			ArrayList<UserAnswer> allAnswersForQuestion = new ArrayList<UserAnswer>();
+			for (QuizPlayer player : players.values()) {
+				allAnswersForQuestion.add(player.getAnswer(questionId));
+			}
+			allAnswers.add(allAnswersForQuestion);
+		}		
+		return round.getScore(playerAnswers, allAnswers);
+	}
+
+	public boolean hasPlayer(String code) {
+		return players.containsKey(code);
+	}
+
+	public QuizQuestion getActualQuestion() {
+		if ((actualRound != -1) && (actualQuestion != -1)) {
+			return rounds.get(actualRound).getQuestion(actualQuestion);
+		} else {
+			return null;
 		}
-		return codes;
+	}
+
+	public int getActualRoundIndex() {
+		return actualRound;
+	}
+
+	public int getActualQuestionIndex() {
+		return actualQuestion;
+	}
+
+	public boolean hasNextQuestion() {
+		if (actualRound == -1) {
+			return false;
+		} else {
+			return actualQuestion + 1 < rounds.get(actualRound).getQuestionCount();
+		}
+	}
+
+	public boolean hasActiveQuestion() {
+		return actualQuestion != -1;
+	}
+
+	public List<QuizPlayer> getPlayers() {
+		TreeSet<String> keys = new TreeSet<String>(players.keySet());
+		ArrayList<QuizPlayer> sortedPlayers = new ArrayList<QuizPlayer>();
+		for (String key : keys) {
+			sortedPlayers.add(players.get(key));
+		}
+		return sortedPlayers;
 	}
 }
