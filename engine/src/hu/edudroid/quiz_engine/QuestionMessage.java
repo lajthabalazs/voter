@@ -1,7 +1,5 @@
 package hu.edudroid.quiz_engine;
 
-import java.io.UnsupportedEncodingException;
-
 import it.unipr.ce.dsg.s2p.message.BasicMessage;
 import it.unipr.ce.dsg.s2p.org.json.JSONArray;
 import it.unipr.ce.dsg.s2p.org.json.JSONException;
@@ -16,10 +14,8 @@ public class QuestionMessage extends BasicMessage {
 	private String question;
 	private String questionId;
 	private String[] answers;
-	private Base64Coder coder;	
 	
 	public QuestionMessage(String questionId, String question, String[] answers, Base64Coder coder) {
-		this.coder = coder;
 		this.questionId = coder.encode(questionId);
 		this.question = coder.encode(question);
 		this.answers = coder.encode(answers);
@@ -27,33 +23,17 @@ public class QuestionMessage extends BasicMessage {
 	}
 	
 	public QuestionMessage(JSONObject jsonMsg, Base64Coder coder) {
-		this.coder = coder;
 		System.out.println("Question message received");
 		try {
-			questionId = jsonMsg.getString(QUESTION_ID_FIELD_NAME);
-			try {
-				questionId = new String(questionId.getBytes(), "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
+			questionId = coder.decode(jsonMsg.getString(QUESTION_ID_FIELD_NAME));
 			System.out.println("Question id " + questionId);
-			question = jsonMsg.getString(QUESTION_FIELD_NAME);
-			try {
-				question = new String(question.getBytes(), "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
+			question = coder.decode(jsonMsg.getString(QUESTION_FIELD_NAME));
 			System.out.println("Question " + question);
 			JSONArray answerArray = jsonMsg.getJSONArray(ANSWER_FIELD_NAME);
 			System.out.println("Parsing answers, " + answerArray.length() + " in total.");
 			answers = new String[answerArray.length()];
 			for (int i = 0; i < answerArray.length(); i++) {
-				answers[i] = answerArray.getString(i);
-				try {
-					answers[i] = new String(answers[i].getBytes(), "UTF-8");
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
+				answers[i] = coder.decode(answerArray.getString(i));
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -61,11 +41,11 @@ public class QuestionMessage extends BasicMessage {
 	}
 
 	public String getQuestion() {
-		return coder.decode(question);
+		return question;
 	}
 
 	public String[] getAnswers() {
-		return coder.decode(answers);
+		return answers;
 	}
 
 	public String getQuestionId() {

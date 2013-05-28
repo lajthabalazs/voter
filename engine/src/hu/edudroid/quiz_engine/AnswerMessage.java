@@ -13,38 +13,35 @@ public class AnswerMessage extends BasicMessage {
 	private String answerId;
 	private String code;
 	private String questionId;
-	private Base64Coder coder;
 
 
 	public AnswerMessage(String code, String questionId, String answerId, Base64Coder coder) {
 		super();
-		this.coder = coder;
 		super.setType(ANSWER_MESSAGE_TYPE);
-		this.code = code;
-		this.answerId = answerId;
-		this.questionId = questionId;
+		this.code = coder.encode(code);
+		this.answerId = coder.encode(answerId);
+		this.questionId = coder.encode(questionId);
 	}
 	
 	public AnswerMessage(JSONObject jsonMsg, Base64Coder coder) {
-		this.coder = coder;
 		try {
-			code = jsonMsg.getString(CODE_KEY);
-			answerId = jsonMsg.getString(ANSWER_ID_KEY);
-			questionId = jsonMsg.getString(QUESTION_ID_KEY);
+			code = coder.decode(jsonMsg.getString(CODE_KEY));
+			answerId = coder.decode(jsonMsg.getString(ANSWER_ID_KEY));
+			questionId = coder.decode(jsonMsg.getString(QUESTION_ID_KEY));
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public String getCode() {
-		return coder.decode(code);
+		return code;
 	}
 	
 	public String getAnswerId() {
-		return coder.decode(answerId);
+		return answerId;
 	}
 	
 	public String getQuestionId() {
-		return coder.decode(questionId);
+		return questionId;
 	}
 }

@@ -17,16 +17,29 @@ public class Base64CoderAndroid implements Base64Coder {
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			return Base64.encodeToString(string.getBytes(), Base64.DEFAULT);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return string;
 		}
 	}
 
 	@Override
 	public String decode(String base64EncodedString) {
 		try {
-			return new String(Base64.decode(base64EncodedString, Base64.DEFAULT), "UTF-8");
+			System.out.println("Decode " + base64EncodedString);
+			if (base64EncodedString.endsWith("\n")) {
+				base64EncodedString = base64EncodedString.substring(0, base64EncodedString.length() - "\n".length());
+				System.out.println("Removed new line " + base64EncodedString);
+			}
+			String result = new String(Base64.decode(base64EncodedString, Base64.DEFAULT), "UTF-8");
+			System.out.println("Decoded " + result);
+			return result;
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			return new String(Base64.decode(base64EncodedString, Base64.DEFAULT));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return base64EncodedString;
 		}
 	}
 
