@@ -99,7 +99,7 @@ public class QuizServerAdmin extends JFrame implements ActionListener, QuizPeerL
 				try{
 					running = true;
 					
-					QuizParser parser = new QuizParser(fileNameField.getText());
+					QuizGame parser = new QuizGame(fileNameField.getText());
 					usersAnswers = new String[parser.getCodes().length][parser.getQuestionIds().length];
 					userCodes = parser.getCodes();
 					questionIds = parser.getQuestionIds();

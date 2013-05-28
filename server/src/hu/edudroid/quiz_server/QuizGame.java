@@ -6,13 +6,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-public class QuizParser {
+public class QuizGame {
 	private ArrayList<String> questionIds = new ArrayList<String>();
 	private ArrayList<String> questions = new ArrayList<String>();
 	private ArrayList<ArrayList<String>> answers = new ArrayList<ArrayList<String>>();
 	private ArrayList<ArrayList<String>> codes = new ArrayList<ArrayList<String>>();
 	
-	public QuizParser(String fileName) throws IOException {
+	public QuizGame(String fileName) throws IOException {
 		System.out.println("Parsing");
 		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"));
 		

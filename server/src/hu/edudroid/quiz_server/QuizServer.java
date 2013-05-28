@@ -18,7 +18,7 @@ public class QuizServer implements QuizPeerListener {
 	private String[] questionIds;
 	private String[] questions;
 	private String[][] answers;
-	private String[][] userCodes; 
+	private String[][] userCodes;
 	
 	private HashMap<String, Address> clients = new HashMap<String, Address>();
 	private Set<QuizPeerListener> listeners = new HashSet<QuizPeerListener>();
