@@ -2,6 +2,7 @@ package hu.edudroid.quiz_server;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -46,6 +47,10 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 		contentPane.add(buttonPanel, BorderLayout.PAGE_END);
 		questionView = new QuestionView();
 		scoreView = new ScoreView();
+		JPanel centerPanel = new JPanel(new FlowLayout());
+		centerPanel.add(questionView);
+		centerPanel.add(scoreView);
+		contentPane.add(centerPanel, BorderLayout.CENTER);
 		setVisible(true);
 		updateUI();
 		pack();
@@ -61,12 +66,12 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 				List<QuizPlayer> players = model.getPlayers();
 				if (answerTime) {
 					System.out.println("Updating question view");
-					Container contentPane = getContentPane();
-					contentPane.add(questionView, BorderLayout.CENTER);
+					scoreView.setVisible(false);
+					questionView.setVisible(true);
 					questionView.updateUI(quizQuestion, players, timeLeft);
-				} else {
-					Container contentPane = getContentPane();
-					contentPane.add(scoreView, BorderLayout.CENTER);
+				} else {					
+					scoreView.setVisible(true);
+					questionView.setVisible(false);
 					scoreView.updateUI(model, model.getActualRoundIndex(), quizQuestion, players);
 				}
 			}
@@ -99,11 +104,10 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 	}
 
 	private void startCountDown() {		
-		new CountDownTask(30);
 		if (task != null) {
 			task.cancel();
 		}
-		task = new CountDownTask(30);
+		task = new CountDownTask(10);
 		updateUI();
 		timer.schedule(task, 1000, 1000);
 	}
