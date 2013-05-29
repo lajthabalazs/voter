@@ -1,11 +1,5 @@
 package hu.edudroid.quiz_server;
 
-import hu.edudroid.quiz_engine.AnswerMessage;
-import hu.edudroid.quiz_engine.PingMessage;
-import hu.edudroid.quiz_engine.QuestionMessage;
-import hu.edudroid.quiz_engine.QuizPeerListener;
-import it.unipr.ce.dsg.s2p.sip.Address;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -21,8 +15,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 
-public class QuizLiveFrame extends JFrame implements QuizPeerListener, ActionListener {
+public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionListener {
 	private static final long serialVersionUID = -5423453185160139085L;
+	private static final String ACTION_NEXT_ROUND = "Next round"; 
+	private static final String ACTION_NEXT_QUESTION = "Next question"; 
 	// Shows actual question, active peers, and peers who sent in a response
 	JLabel question;
 	JList<String> answerList;
@@ -36,7 +32,7 @@ public class QuizLiveFrame extends JFrame implements QuizPeerListener, ActionLis
 	public QuizLiveFrame(QuizServer server, QuizGame model) {
 		this.server = server;
 		this.model = model;
-		server.registerListener(this);
+		model.registerListener(this);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		Container contentPane = getContentPane();
 		
@@ -99,37 +95,30 @@ public class QuizLiveFrame extends JFrame implements QuizPeerListener, ActionLis
 		}
 	}
 
-	@Override public void messageSendingError(String sentMessage, Address destination, String messageType) {}
-	@Override public void messageSendingSuccess(String sentMessage, Address destination, String messageType) {}
-
 	@Override
-	public void answerReceived(Address sender, AnswerMessage answer) {
-		// TODO subscribe to model changes instead!
-		updateClientList();
+	public void actionPerformed(ActionEvent arg0) {
+		if (arg0.getActionCommand().equals(ACTION_NEXT_QUESTION)) {
+			int actualRound = model.getActualRoundIndex();
+			if (model.playRound(actualRound + 1)) {
+				server.sendQuestion();
+				updateUI();
+			} else {
+				System.err.println("No next round.");
+			}
+		} else if (arg0.getActionCommand().equals(ACTION_NEXT_ROUND)) {
+			int actualQuestion = model.getActualQuestionIndex();
+			if (model.playQuestion(actualQuestion + 1)) {
+				server.sendQuestion();
+				updateUI();
+			} else {
+				System.err.println("No next question.");
+			}
+		}
 	}
 
 	@Override
-	public void questionReceived(Address sender, QuestionMessage question) {}
-
-	@Override
-	public void pingReceived(Address sender, PingMessage ping) {}
-
-	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		// TODO ask question, next block, etc
-		int actualRound = model.getActualRoundIndex();
-		if (model.playRound(actualRound + 1)) {
-			updateUI();
-		} else {
-			System.err.println("No next round.");
-		}
-		int actualQuestion = model.getActualQuestionIndex();
-		if (model.playQuestion(actualQuestion + 1)) {
-			updateUI();
-		} else {
-			System.err.println("No next question.");
-		}
-
+	public void modelChanged() {
+		updateUI();
 	}
 }
 

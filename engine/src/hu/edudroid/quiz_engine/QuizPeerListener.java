@@ -8,4 +8,5 @@ public interface QuizPeerListener {
 	void answerReceived(Address sender, AnswerMessage answer);
 	void questionReceived(Address sender, QuestionMessage question);
 	void pingReceived(Address sender, PingMessage ping);
+	void timeoutReceived(Address sender, TimeoutMessage timeout);
 }

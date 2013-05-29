@@ -6,6 +6,7 @@ import hu.edudroid.quiz_engine.AnswerMessage;
 import hu.edudroid.quiz_engine.PingMessage;
 import hu.edudroid.quiz_engine.QuestionMessage;
 import hu.edudroid.quiz_engine.QuizPeerListener;
+import hu.edudroid.quiz_engine.TimeoutMessage;
 import android.app.Activity;
 import android.app.AlertDialog.Builder;
 import android.content.ComponentName;
@@ -141,4 +142,18 @@ public class QuizQuestionActivity extends Activity implements ServiceConnection,
 
 	@Override
 	public void pingReceived(Address source, PingMessage ping) {}
+
+	@Override
+	public void timeoutReceived(Address sender, TimeoutMessage timeout) {
+		questionId = null;
+		final String questionString = null;
+		final String[] answers = null;
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				Toast.makeText(QuizQuestionActivity.this, "Response time is over", Toast.LENGTH_LONG).show();
+				updateUi(questionString, answers);
+			}
+		});
+	}
 }

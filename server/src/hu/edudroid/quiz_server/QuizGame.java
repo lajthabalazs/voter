@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -16,6 +17,7 @@ public class QuizGame {
 	private int actualRound = -1;
 	private int actualQuestion = -1;
 	private HashMap<String, QuizPlayer> players = new HashMap<String,QuizPlayer>();
+	private HashSet<QuizGameListener> listeners = new HashSet<QuizGameListener>();
 	
 	public QuizGame(String fileName) throws IOException {
 		System.out.println("Parsing");
@@ -68,6 +70,7 @@ public class QuizGame {
 			return false;
 		} else if (rounds.size() > round) {
 			actualRound = round;
+			actualQuestion = 0;
 			return true;
 		} else {
 			return false;
@@ -149,5 +152,13 @@ public class QuizGame {
 			sortedPlayers.add(players.get(key));
 		}
 		return sortedPlayers;
+	}
+	
+	public void registerListener(QuizGameListener listener) {
+		listeners.add(listener);
+	}
+	
+	public void unregisterListener(QuizGameListener listener) {
+		listeners.remove(listener);
 	}
 }

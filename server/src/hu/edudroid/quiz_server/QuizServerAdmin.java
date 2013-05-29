@@ -1,11 +1,5 @@
 package hu.edudroid.quiz_server;
 
-import hu.edudroid.quiz_engine.AnswerMessage;
-import hu.edudroid.quiz_engine.PingMessage;
-import hu.edudroid.quiz_engine.QuestionMessage;
-import hu.edudroid.quiz_engine.QuizPeerListener;
-import it.unipr.ce.dsg.s2p.sip.Address;
-
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -20,7 +14,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 
-public class QuizServerAdmin extends JFrame implements ActionListener, QuizPeerListener {
+public class QuizServerAdmin extends JFrame implements ActionListener {
 	
 	public static void main(String[] args) {
 		new QuizServerAdmin();
@@ -98,7 +92,6 @@ public class QuizServerAdmin extends JFrame implements ActionListener, QuizPeerL
 					
 					QuizGame model = new QuizGame(fileNameField.getText());
 					QuizServer server = new QuizServer(model);
-					server.registerListener(this);
 					new QuizLiveFrame(server, model);
 					log("Peer created ");
 				} catch(Exception e) {
@@ -114,16 +107,4 @@ public class QuizServerAdmin extends JFrame implements ActionListener, QuizPeerL
 		String text = logArea.getText().substring(0, Math.min(MAX_LOG_LENGTH, logArea.getText().length()));
 		logArea.setText(message + "\n" + text);
 	}
-
-	@Override public void messageSendingError(String sentMessage, Address destination, String messageType) {}
-	@Override public void messageSendingSuccess(String sentMessage, Address destination, String messageType) {}
-
-	@Override
-	public void answerReceived(Address sender, AnswerMessage answer) {}
-
-	@Override
-	public void questionReceived(Address sender, QuestionMessage question) {}
-
-	@Override
-	public void pingReceived(Address sender, PingMessage ping) {}
 }

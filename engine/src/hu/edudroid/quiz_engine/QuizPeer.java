@@ -35,6 +35,11 @@ public class QuizPeer extends Peer{
 		super.send(toAddress, message);
 	}
 
+	public void sendTimeout(Address toAddress, String questionId) {
+		TimeoutMessage message = new TimeoutMessage(questionId, coder);
+		super.send(toAddress, message);
+	}
+	
 	@Override
 	protected void onReceivedJSONMsg(JSONObject jsonMsg, Address sender) {
 		System.out.println("Message received " + jsonMsg.toString());
@@ -58,6 +63,16 @@ public class QuizPeer extends Peer{
 					PingMessage ping = new PingMessage(jsonMsg, coder);
 					for (QuizPeerListener listener : listeners) {
 						listener.pingReceived(sender, ping);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else if (msgType.equals(TimeoutMessage.TIMEOUT_MESSAGE_TYPE)) {
+				System.out.println("Ping");
+				try {
+					TimeoutMessage timeout = new TimeoutMessage(jsonMsg, coder);
+					for (QuizPeerListener listener : listeners) {
+						listener.timeoutReceived(sender, timeout);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

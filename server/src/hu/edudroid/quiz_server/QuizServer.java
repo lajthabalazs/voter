@@ -10,6 +10,7 @@ import hu.edudroid.quiz_engine.PingMessage;
 import hu.edudroid.quiz_engine.QuestionMessage;
 import hu.edudroid.quiz_engine.QuizPeer;
 import hu.edudroid.quiz_engine.QuizPeerListener;
+import hu.edudroid.quiz_engine.TimeoutMessage;
 
 public class QuizServer implements QuizPeerListener {
 	
@@ -61,5 +62,35 @@ public class QuizServer implements QuizPeerListener {
 		} else {
 			System.out.println("No question yet.");
 		}
+	}
+	
+	public void sendQuestion() {
+		QuizQuestion question = game.getActualQuestion();
+		if (question != null) {
+			System.out.println("Send question to all peers.");
+			for (String code : clients.keySet()) {
+				peer.sendQuestion(clients.get(code), question.getQuestionId(), question.getQuestionText(), question.getAnswerStrings());
+			}
+		} else {
+			System.out.println("No question yet.");
+		}
+	}
+
+	public void sendEndOfQuestionTime() {
+		QuizQuestion question = game.getActualQuestion();
+		if (question != null) {
+			System.out.println("Send question to all peers.");
+			for (String code : clients.keySet()) {
+				peer.sendQuestion(clients.get(code), question.getQuestionId(), question.getQuestionText(), question.getAnswerStrings());
+			}
+		} else {
+			System.out.println("No question yet.");
+		}
+	}
+
+	@Override
+	public void timeoutReceived(Address sender, TimeoutMessage timeout) {
+		// TODO Auto-generated method stub
+		
 	}
 }

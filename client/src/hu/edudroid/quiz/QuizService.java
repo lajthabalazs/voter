@@ -5,6 +5,7 @@ import hu.edudroid.quiz_engine.PingMessage;
 import hu.edudroid.quiz_engine.QuestionMessage;
 import hu.edudroid.quiz_engine.QuizPeer;
 import hu.edudroid.quiz_engine.QuizPeerListener;
+import hu.edudroid.quiz_engine.TimeoutMessage;
 import it.unipr.ce.dsg.s2p.sip.Address;
 
 import java.util.HashSet;
@@ -185,6 +186,17 @@ public class QuizService extends Service implements QuizPeerListener {
 
 	public String getQuestionId() {
 		return questionId;
+	}
+
+	@Override
+	public void timeoutReceived(Address sender, TimeoutMessage timeout) {
+		this.questionId = null;
+		this.question = null;
+		this.answers = null;
+		Log.e("Timeout received", timeout.getQuestionId());
+		for (QuizPeerListener listener : listeners) {
+			listener.timeoutReceived(sender, timeout);
+		}
 	}
 
 }
