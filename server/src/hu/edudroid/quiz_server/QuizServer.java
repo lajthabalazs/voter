@@ -19,6 +19,7 @@ public class QuizServer implements QuizPeerListener {
 	private Set<QuizPeerListener> listeners = new HashSet<QuizPeerListener>();
 	
 	private QuizGame game;
+	private boolean answerTime;
 	
 	public QuizServer(QuizGame game) {
 		this.game = game;
@@ -36,8 +37,12 @@ public class QuizServer implements QuizPeerListener {
 	@Override
 	public void answerReceived(Address sender, AnswerMessage answer) {
 		System.out.println("Answer received from " + answer.getCode());
-		for (QuizPeerListener listener : listeners) {
-			listener.answerReceived(sender, answer);
+		if (answerTime) {
+			for (QuizPeerListener listener : listeners) {
+				listener.answerReceived(sender, answer);
+			}
+		} else {
+			System.err.println("Answer received outside of answer frame.");
 		}
 	}
 
@@ -67,19 +72,22 @@ public class QuizServer implements QuizPeerListener {
 	public void sendQuestion() {
 		QuizQuestion question = game.getActualQuestion();
 		if (question != null) {
+			answerTime = true;
 			System.out.println("Send question to all peers.");
 			for (String code : clients.keySet()) {
 				peer.sendQuestion(clients.get(code), question.getQuestionId(), question.getQuestionText(), question.getAnswerStrings());
 			}
 		} else {
+			answerTime = false;
 			System.out.println("No question yet.");
 		}
 	}
 
 	public void sendEndOfQuestionTime() {
+		answerTime = false;
 		QuizQuestion question = game.getActualQuestion();
 		if (question != null) {
-			System.out.println("Send question to all peers.");
+			System.out.println("Send end of question to all peers.");
 			for (String code : clients.keySet()) {
 				peer.sendQuestion(clients.get(code), question.getQuestionId(), question.getQuestionText(), question.getAnswerStrings());
 			}
@@ -89,8 +97,5 @@ public class QuizServer implements QuizPeerListener {
 	}
 
 	@Override
-	public void timeoutReceived(Address sender, TimeoutMessage timeout) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void timeoutReceived(Address sender, TimeoutMessage timeout) {}
 }

@@ -38,17 +38,17 @@ public class QuizService extends Service implements QuizPeerListener {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		Log.e("ChatService", "Service created.");
+		Log.e("QuizService", "Service created.");
 		 // Set the icon, scrolling text and timestamp
-		notification = new Notification(R.drawable.ic_launcher, "S2P chat is active", System.currentTimeMillis());
+		notification = new Notification(R.drawable.ic_launcher, "Quiz is active", System.currentTimeMillis());
 
         // The PendingIntent to launch our activity if the user selects this notification
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, QuizQuestionActivity.class), 0);
 
         // Set the info for the views that show in the notification panel.
-        notification.setLatestEventInfo(this, "S2P chat is active",
-        		"S2P chat is active", contentIntent);
+        notification.setLatestEventInfo(this, "Quiz is active",
+        		"Quiz is active", contentIntent);
 		notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		notificationManager.notify(SERVICE_ID, notification);
 		startPeer("QuizPeer", QUIZ_PEER_PORT);
@@ -105,7 +105,6 @@ public class QuizService extends Service implements QuizPeerListener {
 						try {
 							Thread.sleep(500);
 						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					}

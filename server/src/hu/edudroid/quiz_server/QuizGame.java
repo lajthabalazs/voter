@@ -26,7 +26,9 @@ public class QuizGame {
 		QuizQuestion actualQuestion = null;
 		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
 			if (line.startsWith("R")) {
+				System.out.println("Round");
 				actualRound = new QuizRound();
+				rounds.add(actualRound);
 				actualQuestion = null;
 			} else if (line.startsWith("Q")) {
 				if (actualRound != null) {
@@ -36,6 +38,7 @@ public class QuizGame {
 					String text = line.substring(1 + 1 + parts[1].length() + 1 + parts[2].length() + 1);
 					actualQuestion = new QuizQuestion(questionId, text, type);
 					actualRound.addQuestion(actualQuestion);
+					System.out.println("   Question " + actualQuestion.toString());
 				} else {
 					System.err.println("Question found outside of round : " + line);
 				}
@@ -46,6 +49,7 @@ public class QuizGame {
 					answer.setPointValue(Integer.parseInt(parts[1]));
 					answer.setText(line.substring(1 + 1 + parts[1].length() + 1));
 					actualQuestion.addAnswer(answer);
+					System.out.println("      Answer " + answer.toString());
 				} else {
 					System.err.println("Answer found outside of question : " + line);
 				}
@@ -79,13 +83,16 @@ public class QuizGame {
 	
 	public boolean playQuestion(int question) {
 		if (actualRound == -1) {
+			System.out.println("Actual round = -1");
 			return false;
 		} else if (question < 0) {
+			System.out.println("Question < 0");
 			return false;
 		} else if (rounds.get(actualRound).getQuestionCount() > question) {
 			actualQuestion = question;
 			return true;
 		} else {
+			System.out.println("Question out of bounds");
 			return false;
 		}
 	}
@@ -133,6 +140,11 @@ public class QuizGame {
 		return actualQuestion;
 	}
 
+	public boolean hasNextRound() {
+		System.out.println("Rounds " + rounds.size());
+		return actualRound + 1 < rounds.size();
+	}
+	
 	public boolean hasNextQuestion() {
 		if (actualRound == -1) {
 			return false;

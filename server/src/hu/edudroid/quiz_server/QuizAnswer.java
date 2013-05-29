@@ -19,4 +19,9 @@ public class QuizAnswer {
 	public String getText() {
 		return text;
 	}
+	
+	@Override
+	public String toString() {
+		return "(" + pointValue + ") " + text;
+	}
 }

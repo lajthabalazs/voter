@@ -8,12 +8,15 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JPanel;
 
 public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionListener {
 	private static final long serialVersionUID = -5423453185160139085L;
@@ -24,6 +27,8 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 	JList<String> answerList;
 	JList<String> clients;
 	JButton nextQuestion;
+	JButton nextRound;
+	JLabel remainingTimeField;
 	private DefaultListModel<String> clientListModel;
 	private DefaultListModel<String> answerListModel;
 	private QuizServer server;
@@ -38,8 +43,15 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 		
 		question = new JLabel();
 		question.setMaximumSize(new Dimension(600, 600));
-		nextQuestion = new JButton("Next");
+		
+		nextQuestion = new JButton("Next question");
 		nextQuestion.addActionListener(this);
+		nextRound = new JButton("Next round");
+		nextRound.addActionListener(this);
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(nextQuestion, BorderLayout.CENTER);
+		buttonPanel.add(nextRound, BorderLayout.LINE_END);
+		
 		answerList = new JList<String>();
 		answerList.setCellRenderer(new MultilineLabelRenderer());
 		clients = new JList<String>();
@@ -52,16 +64,22 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 		answerListModel = new DefaultListModel<String>();
 		answerList.setModel(answerListModel);
 
+		remainingTimeField = new JLabel();
+		remainingTimeField.setFont(new Font(Font.SERIF, Font.BOLD, 60));
+		
 		contentPane.add(question, BorderLayout.PAGE_START);
 		contentPane.add(answerList, BorderLayout.CENTER);
+		contentPane.add(remainingTimeField, BorderLayout.LINE_START);
 		contentPane.add(clients, BorderLayout.LINE_END);
-		contentPane.add(nextQuestion, BorderLayout.PAGE_END);
+		contentPane.add(buttonPanel, BorderLayout.PAGE_END);
 		
 		pack();
 		setVisible(true);
+		updateUI();
 	}
 	
 	private void updateUI() {
+		nextRound.setEnabled(model.hasNextRound());
 		nextQuestion.setEnabled(model.hasNextQuestion());
 		QuizQuestion quizQestion = model.getActualQuestion();
 		if (question != null) {
@@ -71,78 +89,80 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 			for (int i = 0; i < answers.length; i++) {
 				answerListModel.addElement("<HTML>" + answers[i] + "</HTML>");
 			}
+		} else {
+			question.setText("Intermission");
+			answerListModel.clear();
 		}
-		updateClientList();
+		clientListModel.clear();
+		QuizQuestion quizQuestion = model.getActualQuestion();
+		String questionId = null;
+		if (quizQuestion != null) {
+			questionId = quizQuestion.getQuestionId();
+		}
+		List<QuizPlayer> players = model.getPlayers();
+		for (QuizPlayer player : players) {
+			String item = player.getName();
+			if (questionId == null) { // nothing
+			} else if (player.getAnswer(questionId) != null) {
+				item = item + " ANSWERED";
+			} else {
+				item = item + " WAITING";
+			}
+			clientListModel.addElement(item);
+		}
 		pack();
 	}
 	
-	private void updateClientList() {
-		clientListModel.clear();
-		QuizQuestion quizQuestion = model.getActualQuestion();
-		if (quizQuestion != null) {
-			String questionId = quizQuestion.getQuestionId();
-			List<QuizPlayer> players = model.getPlayers();
-			for (QuizPlayer player : players) {
-				String item = player.getName();
-				if (player.getAnswer(questionId) != null) {
-					item = item + " ANSWERED";
-				} else {
-					item = item + " WAITING";
-				}
-				clientListModel.addElement(item);
-			}
-		} else {
-		}
-	}
-
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		if (arg0.getActionCommand().equals(ACTION_NEXT_QUESTION)) {
+		if (arg0.getActionCommand().equals(ACTION_NEXT_ROUND)) {
 			int actualRound = model.getActualRoundIndex();
 			if (model.playRound(actualRound + 1)) {
 				server.sendQuestion();
 				updateUI();
+				startCountDown();
 			} else {
 				System.err.println("No next round.");
 			}
-		} else if (arg0.getActionCommand().equals(ACTION_NEXT_ROUND)) {
+		} else if (arg0.getActionCommand().equals(ACTION_NEXT_QUESTION)) {
 			int actualQuestion = model.getActualQuestionIndex();
 			if (model.playQuestion(actualQuestion + 1)) {
 				server.sendQuestion();
 				updateUI();
+				startCountDown();
 			} else {
 				System.err.println("No next question.");
 			}
 		}
 	}
 
+	private void startCountDown() {
+		Timer timer = new Timer();
+		timer.schedule(new CountDownTask(30), 1000, 1000);
+	}
+
 	@Override
 	public void modelChanged() {
 		updateUI();
 	}
+
+	private class CountDownTask extends TimerTask {
+		private int timeLeft;
+
+		public CountDownTask(int totalTime) {
+			timeLeft = totalTime;
+		}
+
+		@Override
+		public void run() {
+			timeLeft--;
+			remainingTimeField.setText("" + timeLeft);
+			if (timeLeft <= 0) {
+				remainingTimeField.setText("0");
+				server.sendEndOfQuestionTime();
+				this.cancel();
+				updateUI();
+			}
+		}
+	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

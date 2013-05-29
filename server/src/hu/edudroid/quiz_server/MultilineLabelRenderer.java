@@ -14,7 +14,7 @@ public class MultilineLabelRenderer extends DefaultListCellRenderer {
 	final JLabel label = new JLabel();
 
 	@Override
-	public Component getListCellRendererComponent(final JList list, final Object value, final int index, final boolean isSelected, final boolean hasFocus) {
+	public Component getListCellRendererComponent(@SuppressWarnings("rawtypes") final JList list, final Object value, final int index, final boolean isSelected, final boolean hasFocus) {
 		final String text = (String) value;
 		label.setFont(new Font(Font.SERIF, Font.PLAIN, 20));	
 		label.setText(text);
