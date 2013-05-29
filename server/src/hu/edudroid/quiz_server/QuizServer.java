@@ -63,11 +63,16 @@ public class QuizServer implements QuizPeerListener {
 		clients.put(code, source);
 		QuizQuestion question = game.getActualQuestion();
 		if (question != null) {
-			System.out.println("Send question");
-			QuizPlayer player = game.getPlayer(code);
-			int usableDoublesLeft = player.getLeftDoubles();
-			boolean canUseDoubleOrNothing = !question.isFirst();
-			peer.sendQuestion(source, question.getQuestionId(), question.getQuestionText(), question.getAnswerStrings(), usableDoublesLeft, canUseDoubleOrNothing);
+			if (answerTime) {
+				System.out.println("Send question");
+				QuizPlayer player = game.getPlayer(code);
+				int usableDoublesLeft = player.getLeftDoubles();
+				boolean canUseDoubleOrNothing = !question.isFirst();
+				peer.sendQuestion(source, question.getQuestionId(), question.getQuestionText(), question.getAnswerStrings(), usableDoublesLeft, canUseDoubleOrNothing);
+			} else {
+				System.out.println("Peer joined in intermission, send timeout");
+				peer.sendTimeout(source, question.getQuestionId());
+			}
 		} else {
 			System.out.println("No question yet.");
 		}
