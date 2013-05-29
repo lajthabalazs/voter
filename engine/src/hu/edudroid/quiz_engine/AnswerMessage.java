@@ -31,12 +31,30 @@ public class AnswerMessage extends BasicMessage {
 	public AnswerMessage(JSONObject jsonMsg, Base64Coder coder) {
 		try {
 			code = coder.decode(jsonMsg.getString(CODE_KEY));
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		try {
 			answerId = coder.decode(jsonMsg.getString(ANSWER_ID_KEY));
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		try {
 			questionId = coder.decode(jsonMsg.getString(QUESTION_ID_KEY));
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		try {
 			askForDouble = jsonMsg.getBoolean(ASK_FOR_DOUBLE_KEY);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			askForDouble = false;
+		}
+		try {
 			askForDoubleOrNothing = jsonMsg.getBoolean(ASK_FOR_DOUBLE_OR_NOTHING_KEY);
 		} catch (JSONException e) {
 			e.printStackTrace();
+			askForDoubleOrNothing = false;
 		}
 	}
 

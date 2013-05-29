@@ -25,7 +25,9 @@ public class QuizRound {
 			if (answers.get(i) != null) {
 				ArrayList<Integer> allAnswerIndexes = new ArrayList<Integer>();
 				for (UserAnswer otherAnser : allAnswers.get(i)) {
-					allAnswerIndexes.add(otherAnser.getAnswer());
+					if (otherAnser != null) {
+						allAnswerIndexes.add(otherAnser.getAnswer());
+					}
 				}
 				int questionScore = questions.get(i).getScore(answers.get(i).getAnswer(), allAnswerIndexes);
 				if (answers.get(i).isUsedDouble()) {

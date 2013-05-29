@@ -27,14 +27,20 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int action_settings=0x7f090008;
+        public static final int action_settings=0x7f09000e;
         public static final int answerList=0x7f090007;
+        public static final int cancelButton=0x7f09000c;
         public static final int codeDisplay=0x7f090002;
         public static final int codeEdit=0x7f090004;
         public static final int confirmCodeButton=0x7f090005;
         public static final int connectButton=0x7f090000;
+        public static final int dialogAnswerText=0x7f090009;
+        public static final int dialogQuestionText=0x7f090008;
         public static final int discoverButton=0x7f090003;
+        public static final int doubleCheckbox=0x7f09000a;
+        public static final int doubleOrNothingCheckbox=0x7f09000b;
         public static final int questionText=0x7f090006;
+        public static final int sendButton=0x7f09000d;
         public static final int serverAddressEdit=0x7f090001;
     }
     public static final class layout {
@@ -42,6 +48,7 @@ public final class R {
         public static final int connect_layout=0x7f030001;
         public static final int enter_code=0x7f030002;
         public static final int quiz_question=0x7f030003;
+        public static final int send_dialog_layout=0x7f030004;
     }
     public static final class menu {
         public static final int main=0x7f080000;
@@ -49,12 +56,16 @@ public final class R {
     public static final class string {
         public static final int action_settings=0x7f060001;
         public static final int app_name=0x7f060000;
+        public static final int cancel=0x7f06000b;
         public static final int confirmCode=0x7f060004;
         public static final int connect=0x7f060006;
         public static final int discover=0x7f060005;
+        public static final int doubleOrNothingText=0x7f06000d;
+        public static final int doubleText=0x7f06000c;
         public static final int enterCodeLabel=0x7f060003;
         public static final int hello_world=0x7f060002;
         public static final int noQuestion=0x7f060008;
+        public static final int send=0x7f06000a;
         public static final int separator=0x7f060009;
         public static final int unknown=0x7f060007;
     }

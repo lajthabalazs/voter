@@ -90,7 +90,7 @@ public class QuizServer implements QuizPeerListener {
 		if (question != null) {
 			System.out.println("Send end of question to all peers.");
 			for (String code : clients.keySet()) {
-				peer.sendQuestion(clients.get(code), question.getQuestionId(), question.getQuestionText(), question.getAnswerStrings());
+				peer.sendTimeout(clients.get(code), question.getQuestionId());
 			}
 		} else {
 			System.out.println("No question yet.");

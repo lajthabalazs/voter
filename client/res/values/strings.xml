@@ -11,5 +11,9 @@
     <string name="unknown">UNKNOWN</string>
     <string name="noQuestion">No question received from server</string>
     <string name="separator">Separator</string>
+    <string name="send">Send</string>
+    <string name="cancel">Cancel</string>
+    <string name="doubleText">Double</string>
+    <string name="doubleOrNothingText">Double or Nothing</string>
 
 </resources>
