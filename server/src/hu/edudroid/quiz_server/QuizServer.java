@@ -23,6 +23,7 @@ public class QuizServer implements QuizPeerListener {
 	
 	public QuizServer(QuizGame game) {
 		this.game = game;
+		registerListener(game);
 		peer = new QuizPeer("server", "server", QuizPeer.SERVER_PORT, new Base64CoderSE());
 		peer.registerListener(this);
 	}

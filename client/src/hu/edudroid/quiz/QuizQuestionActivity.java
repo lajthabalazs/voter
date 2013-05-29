@@ -100,13 +100,14 @@ public class QuizQuestionActivity extends Activity implements ServiceConnection,
 	@Override
 	public void onItemClick(AdapterView<?> adapter, View view, int itemPosition, long itemId) {
 		if (service != null) {
+			// TODO show dialog with choices and cancel
 			String address = prefs.getString(EnterCodeActivity.SERVER_ADDRESS_KEY, null);
 			String code = prefs.getString(EnterCodeActivity.CODE_KEY, null);
 			if (address == null) {
 				Toast.makeText(this, "No server address, restart application!", Toast.LENGTH_LONG).show();
 				return;
 			}
-			service.sendAnswer(address, code, questionId, "" + itemPosition);
+			service.sendAnswer(address, code, questionId, "" + itemPosition, false, false);
 		}
 	}
 

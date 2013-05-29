@@ -82,12 +82,12 @@ public class QuizService extends Service implements QuizPeerListener {
 		return 0;
 	}
 	
-	public void sendAnswer(final String address, final String code, final String questionId, final String answer) {
+	public void sendAnswer(final String address, final String code, final String questionId, final String answer, final boolean askForDouble, final boolean askForDoubleOrNothing) {
 		new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
-				peer.sendAnswer(new Address(address, QuizPeer.SERVER_PORT), code, questionId, answer);
+				peer.sendAnswer(new Address(address, QuizPeer.SERVER_PORT), code, questionId, answer, askForDouble, askForDoubleOrNothing);
 			}
 		}).start();
 	}

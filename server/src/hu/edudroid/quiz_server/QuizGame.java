@@ -1,6 +1,12 @@
 package hu.edudroid.quiz_server;
 
+import hu.edudroid.quiz_engine.AnswerMessage;
+import hu.edudroid.quiz_engine.PingMessage;
+import hu.edudroid.quiz_engine.QuestionMessage;
+import hu.edudroid.quiz_engine.QuizPeerListener;
+import hu.edudroid.quiz_engine.TimeoutMessage;
 import hu.edudroid.quiz_server.QuizQuestion.Type;
+import it.unipr.ce.dsg.s2p.sip.Address;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -12,7 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.TreeSet;
 
-public class QuizGame {
+public class QuizGame implements QuizPeerListener{
 	private ArrayList<QuizRound> rounds = new ArrayList<QuizRound>();
 	private int actualRound = -1;
 	private int actualQuestion = -1;
@@ -172,4 +178,32 @@ public class QuizGame {
 	public void unregisterListener(QuizGameListener listener) {
 		listeners.remove(listener);
 	}
+	
+	public boolean setAnswer(String questionId, String code, int answer, boolean askForDouble, boolean askForDoubleOrNothing) {
+		QuizPlayer player = players.get(code);
+		if (player != null) {
+			if (player.getAnswer(questionId) == null) {
+				player.addAnswer(questionId, answer, askForDouble, askForDoubleOrNothing);
+				for (QuizGameListener listener : listeners) {
+					listener.modelChanged();
+				}
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public void answerReceived(Address sender, AnswerMessage answer) {
+		setAnswer(answer.getQuestionId(), answer.getCode(), Integer.parseInt(answer.getAnswerId()), answer.getAskForDouble(), answer.getAskForDoubleOrNothing());
+	}
+
+	@Override public void messageSendingError(String sentMessage, Address destination,String messageType) {}
+	@Override public void messageSendingSuccess(String sentMessage, Address destination,String messageType) {}
+	@Override public void questionReceived(Address sender, QuestionMessage question) {}
+	@Override public void pingReceived(Address sender, PingMessage ping) {}
+	@Override public void timeoutReceived(Address sender, TimeoutMessage timeout) {}
 }

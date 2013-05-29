@@ -20,8 +20,8 @@ public class QuizPeer extends Peer{
 		this.coder = coder;
 	}
 	
-	public void sendAnswer(Address toAddress, String code, String questionId, String answer) {
-		AnswerMessage message = new AnswerMessage(code, questionId, answer, coder);
+	public void sendAnswer(Address toAddress, String code, String questionId, String answer, boolean askForDouble, boolean askForDoubleOrNothing) {
+		AnswerMessage message = new AnswerMessage(code, questionId, answer, askForDouble, askForDoubleOrNothing, coder);
 		super.send(toAddress, message);
 	}
 
