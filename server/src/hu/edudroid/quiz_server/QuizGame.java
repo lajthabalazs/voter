@@ -126,6 +126,30 @@ public class QuizGame implements QuizPeerListener{
 		return round.getScore(playerAnswers, allAnswers);
 	}
 
+	/**
+	 * Gets the specific user's scores for each question of the given round.
+	 * @param round The index of the round
+	 * @param playerCode The code of the player
+	 * @return Time series for each question in the round. Each item is an accumulated value: [0] score for the first answer [1] score for the first and second
+	 * answer. And so on.
+	 */
+	public int[] getScores(int roundIndex, String playerCode) {
+		QuizRound round = rounds.get(roundIndex);
+		ArrayList<String> roundsQuestions = round.getQuestionIds();
+		ArrayList<UserAnswer> playerAnswers = new ArrayList<UserAnswer>();
+		QuizPlayer actualPlayer = players.get(playerCode);
+		ArrayList<ArrayList<UserAnswer>> allAnswers = new ArrayList<ArrayList<UserAnswer>>();
+		for (String questionId : roundsQuestions) {
+			playerAnswers.add(actualPlayer.getAnswer(questionId));
+			ArrayList<UserAnswer> allAnswersForQuestion = new ArrayList<UserAnswer>();
+			for (QuizPlayer player : players.values()) {
+				allAnswersForQuestion.add(player.getAnswer(questionId));
+			}
+			allAnswers.add(allAnswersForQuestion);
+		}		
+		return round.getScores(playerAnswers, allAnswers);
+	}
+
 	public boolean hasPlayer(String code) {
 		return players.containsKey(code);
 	}

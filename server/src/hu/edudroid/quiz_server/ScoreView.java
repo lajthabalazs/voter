@@ -68,8 +68,11 @@ public class ScoreView extends JPanel{
 			// Scores
 			clientListModel.clear();
 			for (QuizPlayer player : players) {
-				int playerScore = model.getScore(roundIndex, player.getCode());
-				String scoreLine = player.getName() + " " + playerScore + " points";
+				int[] playerScores = model.getScores(roundIndex, player.getCode());
+				String scoreLine = player.getName();
+				for (int i = 0; i < playerScores.length; i++) {
+					scoreLine = scoreLine + " " + playerScores[i] + ";";
+				}
 				clientListModel.addElement(scoreLine);
 			}
 		}
