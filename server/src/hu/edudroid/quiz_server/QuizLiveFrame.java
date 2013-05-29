@@ -17,22 +17,22 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionListener {
 	private static final long serialVersionUID = -5423453185160139085L;
 	private static final String ACTION_NEXT_ROUND = "Next round"; 
 	private static final String ACTION_NEXT_QUESTION = "Next question"; 
-	// Shows actual question, active peers, and peers who sent in a response
-	JLabel question;
-	JList<String> answerList;
-	JList<String> clients;
 	JButton nextQuestion;
 	JButton nextRound;
-	JLabel remainingTimeField;
-	private DefaultListModel<String> clientListModel;
-	private DefaultListModel<String> answerListModel;
+	QuestionView questionView;
+	ScoreView scoreView;
 	private QuizServer server;
 	private QuizGame model;
+	private boolean answerTime = false;
+	private int timeLeft;
+	private Timer timer = new Timer();
+	private CountDownTask task;
 	
 	public QuizLiveFrame(QuizServer server, QuizGame model) {
 		this.server = server;
@@ -40,9 +40,6 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 		model.registerListener(this);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		Container contentPane = getContentPane();
-		
-		question = new JLabel();
-		question.setMaximumSize(new Dimension(600, 600));
 		
 		nextQuestion = new JButton("Next question");
 		nextQuestion.addActionListener(this);
@@ -52,65 +49,34 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 		buttonPanel.add(nextQuestion, BorderLayout.CENTER);
 		buttonPanel.add(nextRound, BorderLayout.LINE_END);
 		
-		answerList = new JList<String>();
-		answerList.setCellRenderer(new MultilineLabelRenderer());
-		clients = new JList<String>();
-		clients.setBackground(Color.LIGHT_GRAY);
-		question.setFont(new Font(Font.SERIF, Font.BOLD, 20));
-		
-		clientListModel = new DefaultListModel<String>();
-		clients.setModel(clientListModel);
-
-		answerListModel = new DefaultListModel<String>();
-		answerList.setModel(answerListModel);
-
-		remainingTimeField = new JLabel();
-		remainingTimeField.setFont(new Font(Font.SERIF, Font.BOLD, 60));
-		
-		contentPane.add(question, BorderLayout.PAGE_START);
-		contentPane.add(answerList, BorderLayout.CENTER);
-		contentPane.add(remainingTimeField, BorderLayout.LINE_START);
-		contentPane.add(clients, BorderLayout.LINE_END);
 		contentPane.add(buttonPanel, BorderLayout.PAGE_END);
-		
-		pack();
+		questionView = new QuestionView();
+		scoreView = new ScoreView();
 		setVisible(true);
 		updateUI();
+		pack();
 	}
 	
 	private void updateUI() {
-		nextRound.setEnabled(model.hasNextRound());
-		nextQuestion.setEnabled(model.hasNextQuestion());
-		QuizQuestion quizQestion = model.getActualQuestion();
-		if (question != null) {
-			question.setText("<HTML>" + quizQestion.getQuestionText() + "</HTML>");
-			String[] answers = quizQestion.getAnswerStrings();
-			answerListModel.clear();
-			for (int i = 0; i < answers.length; i++) {
-				answerListModel.addElement("<HTML>" + answers[i] + "</HTML>");
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				nextRound.setEnabled(model.hasNextRound());
+				nextQuestion.setEnabled(model.hasNextQuestion());
+				QuizQuestion quizQuestion = model.getActualQuestion();
+				List<QuizPlayer> players = model.getPlayers();
+				if (answerTime) {
+					System.out.println("Updating question view");
+					Container contentPane = getContentPane();
+					contentPane.add(questionView, BorderLayout.CENTER);
+					questionView.updateUI(quizQuestion, players, timeLeft);
+				} else {
+					Container contentPane = getContentPane();
+					contentPane.add(scoreView, BorderLayout.CENTER);
+					scoreView.updateUI(model, quizQuestion, players);
+				}
 			}
-		} else {
-			question.setText("Intermission");
-			answerListModel.clear();
-		}
-		clientListModel.clear();
-		QuizQuestion quizQuestion = model.getActualQuestion();
-		String questionId = null;
-		if (quizQuestion != null) {
-			questionId = quizQuestion.getQuestionId();
-		}
-		List<QuizPlayer> players = model.getPlayers();
-		for (QuizPlayer player : players) {
-			String item = player.getName();
-			if (questionId == null) { // nothing
-			} else if (player.getAnswer(questionId) != null) {
-				item = item + " ANSWERED";
-			} else {
-				item = item + " WAITING";
-			}
-			clientListModel.addElement(item);
-		}
-		pack();
+		});
 	}
 	
 	@Override
@@ -118,6 +84,7 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 		if (arg0.getActionCommand().equals(ACTION_NEXT_ROUND)) {
 			int actualRound = model.getActualRoundIndex();
 			if (model.playRound(actualRound + 1)) {
+				answerTime = true;
 				server.sendQuestion();
 				updateUI();
 				startCountDown();
@@ -127,6 +94,7 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 		} else if (arg0.getActionCommand().equals(ACTION_NEXT_QUESTION)) {
 			int actualQuestion = model.getActualQuestionIndex();
 			if (model.playQuestion(actualQuestion + 1)) {
+				answerTime = true;
 				server.sendQuestion();
 				updateUI();
 				startCountDown();
@@ -136,9 +104,14 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 		}
 	}
 
-	private void startCountDown() {
-		Timer timer = new Timer();
-		timer.schedule(new CountDownTask(30), 1000, 1000);
+	private void startCountDown() {		
+		new CountDownTask(30);
+		if (task != null) {
+			task.cancel();
+		}
+		task = new CountDownTask(30);
+		updateUI();
+		timer.schedule(task, 1000, 1000);
 	}
 
 	@Override
@@ -147,7 +120,6 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 	}
 
 	private class CountDownTask extends TimerTask {
-		private int timeLeft;
 
 		public CountDownTask(int totalTime) {
 			timeLeft = totalTime;
@@ -156,13 +128,13 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 		@Override
 		public void run() {
 			timeLeft--;
-			remainingTimeField.setText("" + timeLeft);
 			if (timeLeft <= 0) {
-				remainingTimeField.setText("0");
+				timeLeft = 0;
+				answerTime = false;
 				server.sendEndOfQuestionTime();
 				this.cancel();
-				updateUI();
 			}
+			updateUI();
 		}
 	}
 }

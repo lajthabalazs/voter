@@ -141,7 +141,6 @@ public class QuizGame {
 	}
 
 	public boolean hasNextRound() {
-		System.out.println("Rounds " + rounds.size());
 		return actualRound + 1 < rounds.size();
 	}
 	
