@@ -1,21 +1,15 @@
 package hu.edudroid.quiz_server;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -73,7 +67,7 @@ public class QuizLiveFrame extends JFrame implements QuizGameListener, ActionLis
 				} else {
 					Container contentPane = getContentPane();
 					contentPane.add(scoreView, BorderLayout.CENTER);
-					scoreView.updateUI(model, quizQuestion, players);
+					scoreView.updateUI(model, model.getActualRoundIndex(), quizQuestion, players);
 				}
 			}
 		});

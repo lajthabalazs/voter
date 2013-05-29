@@ -84,4 +84,8 @@ public class QuizQuestion {
 	public String toString() {
 		return questionId + "(" + type + ") : " + text;
 	}
+
+	public ArrayList<QuizAnswer> getAnswers() {
+		return answers;
+	}
 }
