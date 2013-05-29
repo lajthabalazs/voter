@@ -42,7 +42,7 @@ public class QuizGame implements QuizPeerListener{
 					String questionId = parts[1];
 					Type type = Type.parse(parts[2]);
 					String text = line.substring(1 + 1 + parts[1].length() + 1 + parts[2].length() + 1);
-					actualQuestion = new QuizQuestion(questionId, text, type);
+					actualQuestion = new QuizQuestion(actualRound, questionId, text, type);
 					actualRound.addQuestion(actualQuestion);
 					System.out.println("   Question " + actualQuestion.toString());
 				} else {
@@ -206,4 +206,8 @@ public class QuizGame implements QuizPeerListener{
 	@Override public void questionReceived(Address sender, QuestionMessage question) {}
 	@Override public void pingReceived(Address sender, PingMessage ping) {}
 	@Override public void timeoutReceived(Address sender, TimeoutMessage timeout) {}
+
+	public QuizPlayer getPlayer(String code) {
+		return players.get(code);
+	}
 }

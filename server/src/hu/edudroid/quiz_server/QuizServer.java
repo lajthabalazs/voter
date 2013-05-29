@@ -64,7 +64,10 @@ public class QuizServer implements QuizPeerListener {
 		QuizQuestion question = game.getActualQuestion();
 		if (question != null) {
 			System.out.println("Send question");
-			peer.sendQuestion(source, question.getQuestionId(), question.getQuestionText(), question.getAnswerStrings());
+			QuizPlayer player = game.getPlayer(code);
+			int usableDoublesLeft = player.getLeftDoubles();
+			boolean canUseDoubleOrNothing = !question.isFirst();
+			peer.sendQuestion(source, question.getQuestionId(), question.getQuestionText(), question.getAnswerStrings(), usableDoublesLeft, canUseDoubleOrNothing);
 		} else {
 			System.out.println("No question yet.");
 		}
@@ -76,7 +79,10 @@ public class QuizServer implements QuizPeerListener {
 			answerTime = true;
 			System.out.println("Send question to all peers.");
 			for (String code : clients.keySet()) {
-				peer.sendQuestion(clients.get(code), question.getQuestionId(), question.getQuestionText(), question.getAnswerStrings());
+				QuizPlayer player = game.getPlayer(code);
+				int usableDoublesLeft = player.getLeftDoubles();
+				boolean canUseDoubleOrNothing = !question.isFirst();
+				peer.sendQuestion(clients.get(code), question.getQuestionId(), question.getQuestionText(), question.getAnswerStrings(), usableDoublesLeft, canUseDoubleOrNothing);
 			}
 		} else {
 			answerTime = false;

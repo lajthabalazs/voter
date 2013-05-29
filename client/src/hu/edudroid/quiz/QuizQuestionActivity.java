@@ -41,6 +41,8 @@ public class QuizQuestionActivity extends Activity implements ServiceConnection,
 	private String serverAddress;
 	
 	private String questionId;
+	private int leftDoubles = 0;
+	private boolean canUseDoubleOrNothing = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -111,7 +113,10 @@ public class QuizQuestionActivity extends Activity implements ServiceConnection,
 			builder.setView(dialogView);
 			final AlertDialog dialog = builder.create();
 			final CheckBox doubleBox = (CheckBox)dialogView.findViewById(R.id.doubleCheckbox);
+			doubleBox.setEnabled(leftDoubles > 0);
+			doubleBox.setText(doubleBox.getText().toString() + "(" +  leftDoubles + " left)");
 			final CheckBox doubleOrNothingBox = (CheckBox)dialogView.findViewById(R.id.doubleOrNothingCheckbox);
+			doubleOrNothingBox.setEnabled(canUseDoubleOrNothing);
 			Button cancelButton = (Button)dialogView.findViewById(R.id.cancelButton);
 			cancelButton.setOnClickListener(new View.OnClickListener() {
 				@Override
@@ -160,6 +165,8 @@ public class QuizQuestionActivity extends Activity implements ServiceConnection,
 	@Override
 	public void questionReceived(Address source, QuestionMessage question) {
 		questionId = question.getQuestionId();
+		leftDoubles = question.getUsableDoublesLeft();
+		canUseDoubleOrNothing = question.getCanUseDoubleOrNothing();
 		final String questionString = question.getQuestion();
 		final String[] answers = question.getAnswers();
 		runOnUiThread(new Runnable() {

@@ -16,12 +16,14 @@ public class QuizQuestion {
 		}
 	}
 	
+	private QuizRound round;
 	private String questionId;
 	private String text;
 	private ArrayList<QuizAnswer> answers = new ArrayList<QuizAnswer>();
 	private Type type;
 	
-	public QuizQuestion(String questionId, String text, Type type) {
+	public QuizQuestion(QuizRound round, String questionId, String text, Type type) {
+		this.round = round;
 		this.questionId = questionId;
 		this.text = text;
 		this.type = type;
@@ -87,5 +89,9 @@ public class QuizQuestion {
 
 	public ArrayList<QuizAnswer> getAnswers() {
 		return answers;
+	}
+
+	public boolean isFirst() {
+		return round.getQuestion(0).getQuestionId().equals(questionId);
 	}
 }

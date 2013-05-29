@@ -25,8 +25,8 @@ public class QuizPeer extends Peer{
 		super.send(toAddress, message);
 	}
 
-	public void sendQuestion(Address toAddress, String questionId, String question, String[] answers) {
-		QuestionMessage message = new QuestionMessage(questionId, question, answers, coder);
+	public void sendQuestion(Address toAddress, String questionId, String question, String[] answers, int usableDoublesLeft, boolean canUseDoubleOrNothing) {
+		QuestionMessage message = new QuestionMessage(questionId, question, answers, usableDoublesLeft, canUseDoubleOrNothing, coder);
 		super.send(toAddress, message);
 	}
 

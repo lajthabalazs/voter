@@ -10,15 +10,21 @@ public class QuestionMessage extends BasicMessage {
 	private static final String QUESTION_FIELD_NAME = "question";
 	private static final String QUESTION_ID_FIELD_NAME = "questionId";
 	private static final String ANSWER_FIELD_NAME = "answers";
+	private static final String USABLE_DOUBLES_FIELD_NAME = "usableDoublesLeft";
+	private static final String CAN_USE_DOUBLE_OR_NOTHING_FIELD_NAME = "canUseDoubleOrNothing";
 	
 	private String question;
 	private String questionId;
 	private String[] answers;
+	private int usableDoublesLeft = 0;
+	private boolean canUseDoubleOrNothing = false;
 	
-	public QuestionMessage(String questionId, String question, String[] answers, Base64Coder coder) {
+	public QuestionMessage(String questionId, String question, String[] answers, int usableDoublesLeft, boolean canUseDoubleOrNothing, Base64Coder coder) {
 		this.questionId = coder.encode(questionId);
 		this.question = coder.encode(question);
 		this.answers = coder.encode(answers);
+		this.usableDoublesLeft = usableDoublesLeft;
+		this.canUseDoubleOrNothing = canUseDoubleOrNothing;
 		super.setType(QUESTION_MESSAGE_TYPE);
 	}
 	
@@ -26,15 +32,14 @@ public class QuestionMessage extends BasicMessage {
 		System.out.println("Question message received");
 		try {
 			questionId = coder.decode(jsonMsg.getString(QUESTION_ID_FIELD_NAME));
-			System.out.println("Question id " + questionId);
 			question = coder.decode(jsonMsg.getString(QUESTION_FIELD_NAME));
-			System.out.println("Question " + question);
 			JSONArray answerArray = jsonMsg.getJSONArray(ANSWER_FIELD_NAME);
-			System.out.println("Parsing answers, " + answerArray.length() + " in total.");
 			answers = new String[answerArray.length()];
 			for (int i = 0; i < answerArray.length(); i++) {
 				answers[i] = coder.decode(answerArray.getString(i));
 			}
+			usableDoublesLeft = jsonMsg.getInt(USABLE_DOUBLES_FIELD_NAME);
+			canUseDoubleOrNothing = jsonMsg.getBoolean(CAN_USE_DOUBLE_OR_NOTHING_FIELD_NAME);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -50,5 +55,13 @@ public class QuestionMessage extends BasicMessage {
 
 	public String getQuestionId() {
 		return questionId;
+	}
+
+	public int getUsableDoublesLeft() {
+		return usableDoublesLeft;
+	}
+
+	public boolean getCanUseDoubleOrNothing() {
+		return canUseDoubleOrNothing;
 	}
 }
