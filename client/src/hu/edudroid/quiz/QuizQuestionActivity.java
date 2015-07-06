@@ -20,6 +20,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -29,7 +30,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class QuizQuestionActivity extends Activity implements ServiceConnection, OnItemClickListener, QuizPeerListener {
+public class QuizQuestionActivity extends Activity implements ServiceConnection, OnItemClickListener, QuizPeerListener, OnClickListener {
 
 	private TextView questionText;
 	private TextView codeText;
@@ -43,6 +44,7 @@ public class QuizQuestionActivity extends Activity implements ServiceConnection,
 	private String questionId;
 	private int leftDoubles = 0;
 	private boolean canUseDoubleOrNothing = false;
+	private Button refreshButton;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +55,8 @@ public class QuizQuestionActivity extends Activity implements ServiceConnection,
 		answerList = (ListView)findViewById(R.id.answerList);
 		answerList.setOnItemClickListener(this);
 		prefs = getSharedPreferences(EnterCodeActivity.SHARED_PREFS_NAME, MODE_PRIVATE);
+		refreshButton = (Button)findViewById(R.id.refreshButton);
+		refreshButton.setOnClickListener(this);
 	}
 	
 	@Override
@@ -207,5 +211,16 @@ public class QuizQuestionActivity extends Activity implements ServiceConnection,
 				updateUi(questionString, answers);
 			}
 		});
+	}
+
+	@Override
+	public void onClick(View arg0) {
+		if (arg0.getId() == R.id.refreshButton) {
+			if (service != null) {
+				String address = prefs.getString(EnterCodeActivity.SERVER_ADDRESS_KEY, null);
+				String code = prefs.getString(EnterCodeActivity.CODE_KEY, null);
+				service.sendPing(address, code);
+			}
+		}
 	}
 }

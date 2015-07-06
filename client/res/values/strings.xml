@@ -15,5 +15,6 @@
     <string name="cancel">Cancel</string>
     <string name="doubleText">Double</string>
     <string name="doubleOrNothingText">Double or Nothing</string>
+    <string name="refresh">Refresh</string>
 
 </resources>
